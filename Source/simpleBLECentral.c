@@ -132,6 +132,9 @@
 // TRUE to filter discovery results on desired service UUID
 #define DEFAULT_DEV_DISC_BY_SVC_UUID          FALSE
 
+// Default Wait for discovery timer delay in ms
+#define DEFAULT_WAIT_DISCOVERY_DELAY          1000
+
 // Application states
 enum
 {
@@ -223,11 +226,13 @@ static void simpleBLECentralPasscodeCB( uint8 *deviceAddr, uint16 connectionHand
                                         uint8 uiInputs, uint8 uiOutputs );
 static void simpleBLECentralPairStateCB( uint16 connHandle, uint8 state, uint8 status );
 static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys );
+static void simpleBLECentralSelectDevice( void );
 static void simpleBLECentral_ProcessOSALMsg( osal_event_hdr_t *pMsg );
 static void simpleBLEGATTDiscoveryEvent( gattMsgEvent_t *pMsg );
 static void simpleBLECentralStartDiscovery( void );
 static bool simpleBLEFindSvcUuid( uint16 uuid, uint8 *pData, uint8 dataLen );
-static void simpleBLEAddDeviceInfo( uint8 *pAddr, uint8 addrType );
+static void simpleBLEAddDeviceInfo( uint8 *pAddr, uint8 addrType, int8 rssi);
+
 char *bdAddr2Str ( uint8 *pAddr );
 
 /*********************************************************************
@@ -374,6 +379,12 @@ uint16 SimpleBLECentral_ProcessEvent( uint8 task_id, uint16 events )
     return ( events ^ START_DISCOVERY_EVT );
   }
 
+  if ( events & WAIT_DISCOVERY_EVT )
+  {
+    simpleBLECentralSelectDevice( );
+    
+    return ( events ^ WAIT_DISCOVERY_EVT );
+  }
   // Discard unknown events
   return 0;
 }
@@ -480,19 +491,8 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
   if ( keys & HAL_KEY_LEFT )
   {
     SerialPrintString("\r\n[KEY LEFT pressed!]");
-    // Display discovery results
-    if ( !simpleBLEScanning && simpleBLEScanRes > 0 )
-    {
-        // Increment index of current result (with wraparound)
-        simpleBLEScanIdx++;
-        if ( simpleBLEScanIdx >= simpleBLEScanRes )
-        {
-          simpleBLEScanIdx = 0;
-        }
-
-        SerialPrintValue( "\r\nDevice", simpleBLEScanIdx + 1, 10);
-        SerialPrintString((uint8*) bdAddr2Str( simpleBLEDevList[simpleBLEScanIdx].addr ));SerialPrintString("\r\n");
-    }
+    osal_start_timerEx( simpleBLETaskId, WAIT_DISCOVERY_EVT, DEFAULT_WAIT_DISCOVERY_DELAY );
+    
   }
 
   if ( keys & HAL_KEY_RIGHT )
@@ -562,9 +562,32 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
         simpleBLERssi = FALSE;
         GAPCentralRole_CancelRssi( simpleBLEConnHandle );
 
-        LCD_WRITE_STRING( "RSSI Cancelled", HAL_LCD_LINE_1 );
         SerialPrintString("\r\nRSSI Cancelled");
       }
+    }
+  }
+}
+
+static void simpleBLECentralSelectDevice()
+{
+  if ( !simpleBLEScanning && simpleBLEScanRes > 0 )
+  {
+    simpleBLEScanIdx = 0;
+    uint8 maxIdx = 0;
+    uint8 minRssi = 120;
+    uint8 rssi;
+    while ( simpleBLEScanIdx < simpleBLEScanRes )
+    {
+      SerialPrintValue( "\r\nDevice", simpleBLEScanIdx + 1, 10);
+      SerialPrintString((uint8*) bdAddr2Str( simpleBLEDevList[simpleBLEScanIdx].addr ));
+      SerialPrintValue("\r\nRssi", simpleBLEDevList[simpleBLEScanIdx].rssi, 10);
+      rssi = simpleBLEDevList[simpleBLEScanIdx].rssi;
+      if ( rssi < minRssi )
+      {
+        maxIdx = simpleBLEScanIdx;
+      }
+      // Increment index of current result (with wraparound)
+      simpleBLEScanIdx++;
     }
   }
 }
@@ -593,16 +616,14 @@ static void simpleBLECentralProcessGATTMsg( gattMsgEvent_t *pMsg )
     {
       uint8 status = pMsg->msg.errorRsp.errCode;
 
-      LCD_WRITE_STRING_VALUE( "Read Error", status, 10, HAL_LCD_LINE_1 );
-      SerialPrintValue("Read Error", status, 10);SerialPrintString("\r\n");
+      SerialPrintValue("\r\nRead Error", status, 10);
     }
     else
     {
       // After a successful read, display the read value
       uint8 valueRead = pMsg->msg.readRsp.value[0];
 
-      LCD_WRITE_STRING_VALUE( "Read rsp:", valueRead, 10, HAL_LCD_LINE_1 );
-      SerialPrintValue("Read rsp:", valueRead, 10);SerialPrintString("\r\n");
+      SerialPrintValue("\r\nRead rsp:", valueRead, 10);
     }
 
     simpleBLEProcedureInProgress = FALSE;
@@ -616,15 +637,13 @@ static void simpleBLECentralProcessGATTMsg( gattMsgEvent_t *pMsg )
     {
       uint8 status = pMsg->msg.errorRsp.errCode;
 
-      LCD_WRITE_STRING_VALUE( "Write Error", status, 10, HAL_LCD_LINE_1 );
-      SerialPrintValue( "Write Error", status, 10);SerialPrintString("\r\n");
+      SerialPrintValue( "\r\nWrite Error", status, 10);
     }
     else
     {
       // After a succesful write, display the value that was written and increment value
       uint8 temp=simpleBLECharVal;
-      LCD_WRITE_STRING_VALUE( "Write sent:", simpleBLECharVal++, 10, HAL_LCD_LINE_1 );
-      SerialPrintValue( "Write sent:", temp, 10);SerialPrintString("\r\n");
+      SerialPrintValue( "\r\nWrite sent:", temp, 10);
     }
 
     simpleBLEProcedureInProgress = FALSE;
@@ -649,7 +668,6 @@ static void simpleBLECentralProcessGATTMsg( gattMsgEvent_t *pMsg )
  */
 static void simpleBLECentralRssiCB( uint16 connHandle, int8 rssi )
 {
-    LCD_WRITE_STRING_VALUE( "RSSI -dB:", (uint8) (-rssi), 10, HAL_LCD_LINE_1 );
     SerialPrintValue("RSSI -dB:", (uint8) (-rssi), 10);SerialPrintString("\r\n");
 }
 
@@ -668,31 +686,34 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
   {
     case GAP_DEVICE_INIT_DONE_EVENT:
       {
-        LCD_WRITE_STRING( "BLE Central", HAL_LCD_LINE_1 );
-        SerialPrintString("BLE Central: ");
-        LCD_WRITE_STRING( bdAddr2Str( pEvent->initDone.devAddr ),  HAL_LCD_LINE_2 );
+        SerialPrintString("\r\nBLE Central: ");
         SerialPrintString((uint8*)bdAddr2Str( pEvent->initDone.devAddr ));
-        SerialPrintString("\r\n");
       }
       break;
 
     case GAP_DEVICE_INFO_EVENT:
       {
+        SerialPrintString("\r\nGAP Event: GAP_DEVICE_INFO_EVENT");
         // if filtering device discovery results based on service UUID
-        if ( DEFAULT_DEV_DISC_BY_SVC_UUID == TRUE )
-        {
+        //if ( DEFAULT_DEV_DISC_BY_SVC_UUID == TRUE )
+        //{
+          SerialPrintString("\r\n");
+          SerialPrintString(pEvent->deviceInfo.addr);
+          SerialPrintValue("\r\nRRSSII:", ~(pEvent->deviceInfo.rssi)+1, 10);
           if ( simpleBLEFindSvcUuid( SIMPLEPROFILE_SERV_UUID,
                                      pEvent->deviceInfo.pEvtData,
                                      pEvent->deviceInfo.dataLen ) )
           {
-            simpleBLEAddDeviceInfo( pEvent->deviceInfo.addr, pEvent->deviceInfo.addrType );
+            
+            simpleBLEAddDeviceInfo( pEvent->deviceInfo.addr, pEvent->deviceInfo.addrType, ~(pEvent->deviceInfo.rssi)+1);
           }
-        }
+        //}
       }
       break;
 
     case GAP_DEVICE_DISCOVERY_EVENT:
       {
+        SerialPrintString("\r\nGAP Event: GAP_DEVICE_DISCOVERY_EVENT");
         // discovery complete
         simpleBLEScanning = FALSE;
 
@@ -705,13 +726,10 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
                        (sizeof( gapDevRec_t ) * pEvent->discCmpl.numDevs) );
         }
 
-        LCD_WRITE_STRING_VALUE( "Devices Found", simpleBLEScanRes,
-                                10, HAL_LCD_LINE_1 );
-        SerialPrintValue("Devices Found", simpleBLEScanRes,10);
+        SerialPrintValue("\r\nDevices Found", simpleBLEScanRes,10);
 
         if ( simpleBLEScanRes > 0 )
         {
-          LCD_WRITE_STRING( "<- To Select", HAL_LCD_LINE_2 );
           SerialPrintString("<- To Select\r\n");
         }
 
@@ -723,6 +741,7 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
 
     case GAP_LINK_ESTABLISHED_EVENT:
       {
+        SerialPrintString("\r\nGAP Event: GAP_LINK_ESTABLISHED_EVENT");
         if ( pEvent->gap.hdr.status == SUCCESS )
         {
           simpleBLEState = BLE_STATE_CONNECTED;
@@ -735,9 +754,7 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
             osal_start_timerEx( simpleBLETaskId, START_DISCOVERY_EVT, DEFAULT_SVC_DISCOVERY_DELAY );
           }
 
-          LCD_WRITE_STRING( "Connected", HAL_LCD_LINE_1 );
-          SerialPrintString("Connected: ");
-          LCD_WRITE_STRING( bdAddr2Str( pEvent->linkCmpl.devAddr ), HAL_LCD_LINE_2 );
+          SerialPrintString("\r\nConnected: ");
           SerialPrintString((uint8*) bdAddr2Str( pEvent->linkCmpl.devAddr ));SerialPrintString("\r\n");
 
         }
@@ -758,6 +775,7 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
 
     case GAP_LINK_TERMINATED_EVENT:
       {
+        SerialPrintString("\r\nGAP Event: GAP_LINK_TERMINATED_EVENT");
         simpleBLEState = BLE_STATE_IDLE;
         simpleBLEConnHandle = GAP_CONNHANDLE_INIT;
         simpleBLERssi = FALSE;
@@ -775,8 +793,8 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
 
     case GAP_LINK_PARAM_UPDATE_EVENT:
       {
+        SerialPrintString("\r\nGAP Event: GAP_LINK_PARAM_UPDATE_EVENT");
         LCD_WRITE_STRING( "Param Update", HAL_LCD_LINE_1 );
-        SerialPrintString("Param Update\r\n");
       }
       break;
 
@@ -1014,7 +1032,7 @@ static bool simpleBLEFindSvcUuid( uint16 uuid, uint8 *pData, uint8 dataLen )
  *
  * @return  none
  */
-static void simpleBLEAddDeviceInfo( uint8 *pAddr, uint8 addrType )
+static void simpleBLEAddDeviceInfo( uint8 *pAddr, uint8 addrType, int8 rssi)
 {
   uint8 i;
 
@@ -1033,6 +1051,8 @@ static void simpleBLEAddDeviceInfo( uint8 *pAddr, uint8 addrType )
     // Add addr to scan result list
     osal_memcpy( simpleBLEDevList[simpleBLEScanRes].addr, pAddr, B_ADDR_LEN );
     simpleBLEDevList[simpleBLEScanRes].addrType = addrType;
+    simpleBLEDevList[simpleBLEScanRes].rssi = rssi;
+    
 
     // Increment scan result count
     simpleBLEScanRes++;

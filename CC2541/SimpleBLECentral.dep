@@ -163,6 +163,7 @@
             <file>$PROJ_DIR$\CC2541EM\Obj\hal_key.pbi</file>
             <file>$PROJ_DIR$\CC2541EM\Obj\hal_led.r51</file>
             <file>$PROJ_DIR$\..\..\..\..\Components\osal\include\OSAL.h</file>
+            <file>$PROJ_DIR$\..\..\SimpleBLECentral_SerialPrint\Source\simpleBLECentral_Main.c</file>
         </outputs>
         <file>
             <name>[ROOT_NODE]</name>
@@ -207,7 +208,7 @@
                 </tool>
                 <tool>
                     <name>BICOMP</name>
-                    <file> 157 132 43 11 76 54 14 48 74 150 85 95 83 15 153 51 75 151 139 101 44 136 46 146 116 91 89 40 12 60 53 49 20 22</file>
+                    <file> 54 150 14 95 43 85 157 83 48 74 132 11 76 53 153 51 75 151 139 22 136 46 146 116 91 89 40 12 60 49 20 101 44 15</file>
                 </tool>
             </inputs>
         </file>
@@ -253,7 +254,7 @@
                 </tool>
                 <tool>
                     <name>BICOMP</name>
-                    <file> 157 47 101 139 54 95 14 146 44 125 75 74 132 150 76 11 116 145 83 65 102 126 22 89 91 40 12 120 53 20 49 85 113 15</file>
+                    <file> 101 47 139 14 146 44 54 15 22 125 75 74 132 150 76 11 116 145 157 85 102 83 65 126 89 91 40 12 120 49 113 53 95 20</file>
                 </tool>
             </inputs>
         </file>
@@ -847,7 +848,7 @@
                 </tool>
                 <tool>
                     <name>BICOMP</name>
-                    <file> 15 54 139 83 132 22 11 76 157 12 150</file>
+                    <file> 15 132 54 83 139 22 11 76 157 12 150</file>
                 </tool>
             </inputs>
         </file>
