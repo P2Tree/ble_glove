@@ -1,0 +1,886 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <fileVersion>2</fileVersion>
+    <fileChecksum>4212821860</fileChecksum>
+    <configuration>
+        <name>CC2541EM</name>
+        <outputs>
+            <file>$PROJ_DIR$\..\Source\OSAL_simpleBLECentral.c</file>
+            <file>$PROJ_DIR$\..\Source\simpleBLECentral.c</file>
+            <file>$PROJ_DIR$\..\Source\simpleBLECentral_Main.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\common\hal_drivers.c</file>
+            <file>$PROJ_DIR$\..\Source\SerialApp.c</file>
+            <file>$PROJ_DIR$\..\Source\simpleBLECentral.h</file>
+            <file>$PROJ_DIR$\..\Source\SerialApp.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_adc.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_assert.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_board.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\central.pbi</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\simpleBLECentral_Main.r51</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\ble\include\gatt.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_adc.pbi</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_aes.pbi</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\include\OSAL_Clock.h</file>
+            <file>$TOOLKIT_DIR$\inc\clib\limits.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\ble\controller\include\ll_timer2.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\gap.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\SimpleBLECentral.pbd</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\OSAL_PwrMgr.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\osal_snv.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_led.r51</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\include\OSAL_Memory.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\include\OSAL_PwrMgr.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\gatt_uuid.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\OSAL_Timers.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\List\SimpleBLECentral.map</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_lcd.pbi</file>
+            <file>$TOOLKIT_DIR$\inc\clib\sysmac.h</file>
+            <file>$PROJ_DIR$\..\..\Profiles\SimpleProfile\simpleGATTprofile.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\include\OSAL.h</file>
+            <file>$PROJ_DIR$\..\..\common\cc2540\ti_51ew_cc2540b.xcl</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\simpleBLECentral.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_key.pbi</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_flash.pbi</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_defs.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_timer.h</file>
+            <file>$PROJ_DIR$\..\..\Libraries\CC2541DB\bin\CC2541_BLE_cent.lib</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_flash.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_key.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_led.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_mcu.h</file>
+            <file>$PROJ_DIR$\..\..\common\npi\npi_np\npi.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_sleep.h</file>
+            <file>$PROJ_DIR$\..\..\Libraries\Common\bin\CC254x_BLE_HCI_TL_None.lib</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_key.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_flash.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_uart.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_dma.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_led.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_adc.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_sleep.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_startup.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_aes.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_types.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_lcd.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_aes.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_lcd.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_timer.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\include\hal_drivers.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_uart.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_dma.h</file>
+            <file>$PROJ_DIR$\..\..\common\npi\npi_np\npi.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_board_cfg.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_timer.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\OSAL_PwrMgr.pbi</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\common\OSAL_Memory.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\mcu\cc2540\osal_snv.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\common\osal_bufmgr.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\common\OSAL_Timers.c</file>
+            <file>$PROJ_DIR$\..\..\Include\gapgattserver.h</file>
+            <file>$PROJ_DIR$\..\..\common\cc2540\OnBoard.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\ble\host\gatt_uuid.c</file>
+            <file>$PROJ_DIR$\..\..\common\cc2540\OnBoard.h</file>
+            <file>$PROJ_DIR$\..\..\Include\gattservapp.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\ble\hci\hci_event.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\OnBoard.pbi</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\common\osal_cbtimer.c</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_uart.pbi</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_sleep.r51</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\common\OSAL.c</file>
+            <file>$PROJ_DIR$\..\..\Profiles\Roles\central.c</file>
+            <file>$PROJ_DIR$\..\..\Profiles\Roles\gapbondmgr.c</file>
+            <file>$TOOLKIT_DIR$\inc\clib\string.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\ble\include\bcomdef.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\common\OSAL_ClockBLE.c</file>
+            <file>$PROJ_DIR$\..\..\Profiles\Roles\gap.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\common\OSAL_PwrMgr.c</file>
+            <file>$PROJ_DIR$\..\..\Profiles\Roles\gapbondmgr.h</file>
+            <file>$PROJ_DIR$\buildConfig.cfg</file>
+            <file>$PROJ_DIR$\..\..\Profiles\Roles\central.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_sleep.pbi</file>
+            <file>$PROJ_DIR$\..\..\config\buildComponents.cfg</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\ble\include\l2cap.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\ble\hci\hci_data.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\OnBoard.r51</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\include\osal_bufmgr.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_timer.pbi</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\osal_snv.pbi</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_dma.pbi</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\ble\controller\include\ll_sleep.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_aes.r51</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\ble\hci\hci_tl.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_uart.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\SerialApp.pbi</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\gapbondmgr.r51</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\include\OSAL_Tasks.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\SerialApp.r51</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\include\osal_cbTimer.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_startup.pbi</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\ble\include\gatt_uuid.h</file>
+            <file>$TOOLKIT_DIR$\inc\ioCC2541.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\npi.pbi</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\OSAL.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\osal_bufmgr.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\simpleBLECentral.pbi</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\npi.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\simpleBLECentral_Main.pbi</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\ble\include\hci.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_lcd.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_key.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\OSAL_ClockBLE.r51</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\ble\include\gap.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\OSAL_simpleBLECentral.pbi</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\OSAL.pbi</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\OSAL_Timers.pbi</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_adc.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_drivers.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Exe\SimpleBLECentral.hex</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\OSAL_Memory.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\osal_cbtimer.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_led.pbi</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\include\comdef.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\osal_bufmgr.pbi</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\ble\include\att.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\OSAL_ClockBLE.pbi</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\ble\controller\include\ll.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\include\OSAL_Timers.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\osal\include\osal_snv.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_startup.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\central.r51</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\ble\host\linkdb.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_flash.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_drivers.pbi</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\gapbondmgr.pbi</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\ble\include\sm.h</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\gatt_uuid.pbi</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\OSAL_simpleBLECentral.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\osal_cbtimer.pbi</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\hal_dma.r51</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\_hal_uart_dma.c</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\ble\controller\include\ll_math.h</file>
+            <file>$PROJ_DIR$\..\..\..\..\Components\services\saddr\saddr.h</file>
+            <file>$TOOLKIT_DIR$\lib\clib\cl-pli-blxd-1e16x01.r51</file>
+            <file>$PROJ_DIR$\CC2541EM\Exe\SimpleBLECentral.d51</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\gap.pbi</file>
+            <file>$PROJ_DIR$\CC2541EM\Obj\OSAL_Memory.pbi</file>
+        </outputs>
+        <file>
+            <name>[ROOT_NODE]</name>
+            <outputs>
+                <tool>
+                    <name>XLINK</name>
+                    <file> 155 27 129</file>
+                </tool>
+            </outputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Source\OSAL_simpleBLECentral.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 148</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 124</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 55 31 16 29 133 36 23 138 107 60 137 85 103 119 8 48 9 64 42 112 95 97 76 109 94 123 146 71 89 12 135 75 91 5</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 31 48 94 16 36 112 137 12 8 107 71 91 23 29 55 133 119 76 85 60 103 109 123 89 75 5 138 95 9 135 64 42 97 146</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Source\simpleBLECentral.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 33</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 116</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 85 133 55 36 31 16 29 23 138 24 74 42 112 44 50 9 64 46 58 12 135 94 137 119 8 71 75 91 123 146 89 30 5 6</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 112 31 36 29 6 42 137 50 91 23 133 55 85 146 24 58 71 30 16 94 8 74 46 12 119 75 89 5 138 44 9 64 135 123</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Source\simpleBLECentral_Main.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 11</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 118</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 55 46 9 64 42 36 112 37 60 50 31 16 29 133 23 138 107 24 139 74 44</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 9 55 133 139 50 36 112 37 107 16 46 60 31 24 74 64 42 23 29 44 138</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\hal\common\hal_drivers.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 128</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 144</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 7 55 9 64 42 36 112 54 62 60 46 58 50 44 37 48 31 16 29 133 23 138</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 55 9 133 54 58 60 44 31 36 112 62 46 50 37 48 138 7 64 42 16 23 29</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Source\SerialApp.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 108</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 105</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 85 133 55 36 31 16 29 23 138 24 74 42 112 44 48 9 64 58 6</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 133 36 48 55 44 24 6 138 9 31 74 58 16 23 29 85 42 112 64</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_flash.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 143</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 35</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 64 42 36 55 112 62 9 47</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 42 36 47 55 64 62 112 9</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_key.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 121</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 34</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 42 36 55 112 60 7 9 64 46 31 16 29 133 23 138</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 138 7 55 31 36 9 60 46 112 133 42 64 16 23 29</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_led.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 22</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 132</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 42 36 55 112 60 50 9 64 31 16 29 133 23 138</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 138 50 36 55 9 60 31 112 133 42 64 16 23 29</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_dma.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 150</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 100</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 62 9 64 42 36 55 112 48</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 55 36 112 42 48 9 64 62</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_adc.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 127</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 13</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 7 55 9 64 42 36 112</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 42 36 55 64 9 112 7</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_sleep.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 80</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 92</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 55 42 36 112 9 64 44 50 46 31 16 29 133 23 138 107 24 60 8 101 85 17 152</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 107 9 50 101 36 42 31 60 152 16 133 55 44 46 138 24 8 17 112 64 23 29 85</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_startup.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 140</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 110</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 9 64 42 36 55 112</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 36 64 42 55 112 9</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_lcd.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 120</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 28</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 55 58 9 64 42 36 112 31 16 29 133 23 138 74 44 8</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 36 8 42 31 64 55 138 58 74 9 112 133 44 16 23 29</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_aes.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 102</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 14</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 31 16 29 133 55 36 23 138 54 62 9 64 42 112</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 133 55 36 112 62 138 9 54 16 23 29 64 42 31</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_timer.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 65</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 98</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\hal\target\CC2540EB\hal_uart.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 104</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 79</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 64 42 36 55 112 60 48 9 151 84 29 8 62</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 48 55 36 60 151 42 64 112 8 29 9 84 62</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\common\npi\npi_np\npi.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 117</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 113</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 55 9 64 42 36 112 43 48</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 55 9 64 48 43 42 36 112</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\osal\common\OSAL_Memory.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 130</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 157</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 133 55 36 31 16 29 23 138 74 42 112 44 8</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 133 44 42 23 55 31 74 8 36 138 16 29 112</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\osal\mcu\cc2540\osal_snv.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 21</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 99</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 7 55 9 64 42 36 112 47 133 31 16 29 23 138 139 8 153</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 55 31 36 112 9 8 16 47 133 139 153 64 42 23 29 7 138</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\osal\common\osal_bufmgr.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 115</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 134</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 31 16 29 133 55 36 23 138 74 42 112 44 97</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 138 97 133 36 74 16 23 29 55 44 31 42 112</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\osal\common\OSAL_Timers.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 26</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 126</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 133 55 36 74 42 112 44 31 16 29 23 138 37 9 64</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 44 37 55 31 36 133 74 138 42 112 16 23 29 9 64</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\common\cc2540\OnBoard.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 96</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 77</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 85 133 55 36 74 42 112 44 31 16 29 23 138 50 9 64 46</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 42 55 133 50 112 31 36 64 74 46 44 138 9 85 16 23 29</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\ble\host\gatt_uuid.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 25</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 147</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 133 55 36 31 16 29 23 138 12 85 135 94 111</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 133 55 31 12 138 111 36 16 23 29 85 135 94</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\osal\common\osal_cbtimer.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 131</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 149</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 31 16 29 133 55 36 23 138 107 109</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 138 109 133 107 16 23 29 55 31 36</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\osal\common\OSAL.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 114</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 125</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 84 29 133 55 36 9 64 42 112 31 16 23 138 107 24 15 74 44 60</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 74 107 55 16 9 24 64 133 31 23 15 60 29 42 36 44 84 112 138</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\Profiles\Roles\central.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 141</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 10</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 85 133 55 36 31 16 29 23 138 109 139 103 119 137 8 48 9 64 42 112 95 97 76 94 142 123 146 89 91</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 95 85 89 36 29 64 31 103 23 133 55 109 142 16 137 42 139 94 123 91 138 119 48 76 8 9 112 97 146</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\Profiles\Roles\gapbondmgr.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 106</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 145</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 85 133 55 36 31 16 29 23 138 139 123 146 142 12 135 94 111 119 137 8 75 71 89</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 85 12 137 123 31 71 16 119 36 23 29 133 55 146 139 142 111 75 89 138 135 94 8</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\osal\common\OSAL_ClockBLE.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 122</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 136</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 133 55 36 74 42 112 44 31 16 29 23 138 15</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 55 44 16 31 36 23 74 15 42 112 133 138 29</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\Profiles\Roles\gap.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 18</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 156</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 85 133 55 36 123 31 16 29 23 138 146</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 146 36 16 85 23 123 133 55 31 138 29</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\..\Components\osal\common\OSAL_PwrMgr.c</name>
+            <outputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 20</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 66</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>ICC8051</name>
+                    <file> 93 90 133 55 36 74 42 112 44 31 16 29 23 138 107 24</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 31 133 138 36 42 55 112 74 107 24 44 16 23 29</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\CC2541EM\Exe\SimpleBLECentral.d51</name>
+            <outputs>
+                <tool>
+                    <name>XLINK</name>
+                    <file> 27 129</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>XLINK</name>
+                    <file> 32 38 45 141 18 106 25 127 102 150 128 143 121 120 22 80 140 65 104 117 96 114 115 131 122 130 20 148 21 26 108 33 11 154</file>
+                </tool>
+            </inputs>
+        </file>
+        <forcedrebuild>
+            <name>$PROJ_DIR$\..\..\common\npi\npi_np\npi_spi.c</name>
+            <tool>ICC8051</tool>
+        </forcedrebuild>
+        <forcedrebuild>
+            <name>$PROJ_DIR$\..\..\common\npi\npi_np\npi_uart.c</name>
+            <tool>ICC8051</tool>
+        </forcedrebuild>
+    </configuration>
+</project>
