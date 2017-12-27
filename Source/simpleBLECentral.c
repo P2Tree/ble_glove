@@ -112,19 +112,19 @@
 #define DEFAULT_UPDATE_CONN_TIMEOUT           600
 
 // Default passcode
-#define DEFAULT_PASSCODE                      19655
+#define DEFAULT_PASSCODE                      000000
 
 // Default GAP pairing mode
 #define DEFAULT_PAIRING_MODE                  GAPBOND_PAIRING_MODE_WAIT_FOR_REQ
 
 // Default MITM mode (TRUE to require passcode or OOB when pairing)
-#define DEFAULT_MITM_MODE                     FALSE
+#define DEFAULT_MITM_MODE                     TRUE
 
 // Default bonding mode, TRUE to bond
 #define DEFAULT_BONDING_MODE                  TRUE
 
 // Default GAP bonding I/O capabilities
-#define DEFAULT_IO_CAPABILITIES               GAPBOND_IO_CAP_DISPLAY_ONLY
+#define DEFAULT_IO_CAPABILITIES               GAPBOND_IO_CAP_KEYBOARD_ONLY
 
 // Default service discovery timer delay in ms
 #define DEFAULT_SVC_DISCOVERY_DELAY           1000
@@ -272,7 +272,7 @@ void SimpleBLECentral_Init( uint8 task_id )
   //���Ӵ��ڳ�ʼ��������������id
   SerialApp_Init(simpleBLETaskId);
 
-  SerialPrintString("SimpleBLECentral_SerialPrint Start init.\r\n");
+  SerialPrintString("\r\nSimpleBLECentral_SerialPrint Start init.");
 
   // Setup Central Profile
   {
@@ -303,7 +303,7 @@ void SimpleBLECentral_Init( uint8 task_id )
   VOID GATT_InitClient();
 
   // Register to receive incoming ATT Indications/Notifications
-    GATT_RegisterForInd( simpleBLETaskId );
+  GATT_RegisterForInd( simpleBLETaskId );
 
   // Initialize GATT attributes
   GGS_AddService( GATT_ALL_SERVICES );         // GAP
@@ -318,7 +318,7 @@ void SimpleBLECentral_Init( uint8 task_id )
   // Setup a delayed profile startup
   osal_set_event( simpleBLETaskId, START_DEVICE_EVT );
 
-  SerialPrintString("Ready to Starting\r\n");
+  SerialPrintString("\r\nReady to Starting");
 }
 
 /*********************************************************************
@@ -363,7 +363,7 @@ uint16 SimpleBLECentral_ProcessEvent( uint8 task_id, uint16 events )
     // Register with bond manager after starting device
     GAPBondMgr_Register( (gapBondCBs_t *) &simpleBLEBondCB );
 
-    SerialPrintString("BLE Stack is running\r\n");
+    SerialPrintString("\r\nBLE Stack is running");
     return ( events ^ START_DEVICE_EVT );
   }
 
@@ -421,7 +421,7 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
   if ( keys & HAL_KEY_UP )
   {
     // Start or stop discovery
-    SerialPrintString("  [KEY UP pressed!]\r\n");
+    SerialPrintString("\r\n[KEY UP pressed!]");
     if ( simpleBLEState != BLE_STATE_CONNECTED )
     {
       if ( !simpleBLEScanning )
@@ -430,7 +430,7 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
         simpleBLEScanRes = 0;
 
         LCD_WRITE_STRING( "Discovering...", HAL_LCD_LINE_1 );
-        SerialPrintString("Discovering...\r\n");
+        SerialPrintString("\r\nDiscovering...");
 
         GAPCentralRole_StartDiscovery( DEFAULT_DISCOVERY_MODE,
                                        DEFAULT_DISCOVERY_ACTIVE_SCAN,
@@ -479,7 +479,7 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
 
   if ( keys & HAL_KEY_LEFT )
   {
-    SerialPrintString("  [KEY LEFT pressed!]\r\n");
+    SerialPrintString("\r\n[KEY LEFT pressed!]");
     // Display discovery results
     if ( !simpleBLEScanning && simpleBLEScanRes > 0 )
     {
@@ -490,18 +490,14 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
           simpleBLEScanIdx = 0;
         }
 
-        LCD_WRITE_STRING_VALUE( "Device", simpleBLEScanIdx + 1,
-                                10, HAL_LCD_LINE_1 );
-        SerialPrintValue( "Device", simpleBLEScanIdx + 1, 10);
-        LCD_WRITE_STRING( bdAddr2Str( simpleBLEDevList[simpleBLEScanIdx].addr ),
-                          HAL_LCD_LINE_2 );
+        SerialPrintValue( "\r\nDevice", simpleBLEScanIdx + 1, 10);
         SerialPrintString((uint8*) bdAddr2Str( simpleBLEDevList[simpleBLEScanIdx].addr ));SerialPrintString("\r\n");
     }
   }
 
   if ( keys & HAL_KEY_RIGHT )
   {
-    SerialPrintString("  [KEY RIGHT pressed!]\r\n");
+    SerialPrintString("\r\n[KEY RIGHT pressed!]");
     // Connection update
     if ( simpleBLEState == BLE_STATE_CONNECTED )
     {
@@ -517,7 +513,7 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
   {
     uint8 addrType;
     uint8 *peerAddr;
-    SerialPrintString("  [KEY CENTER pressed!]\r\n");
+    SerialPrintString("\r\n[KEY CENTER pressed!]");
     // Connect or disconnect
     if ( simpleBLEState == BLE_STATE_IDLE )
     {
@@ -534,9 +530,7 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
                                       DEFAULT_LINK_WHITE_LIST,
                                       addrType, peerAddr );
 
-        LCD_WRITE_STRING( "Connecting", HAL_LCD_LINE_1 );
-        SerialPrintString("Connecting:");
-        LCD_WRITE_STRING( bdAddr2Str( peerAddr ), HAL_LCD_LINE_2 );
+        SerialPrintString("\r\nConnecting:");
         SerialPrintString((uint8*)bdAddr2Str( peerAddr));SerialPrintString("\r\n");
       }
     }
@@ -548,14 +542,13 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
 
       gStatus = GAPCentralRole_TerminateLink( simpleBLEConnHandle );
 
-      LCD_WRITE_STRING( "Disconnecting", HAL_LCD_LINE_1 );
-      SerialPrintString("Disconnecting\r\n");
+      SerialPrintString("\r\nDisconnecting");
     }
   }
 
   if ( keys & HAL_KEY_DOWN )
   {
-    SerialPrintString("  [KEY DOWN pressed!]\r\n");
+    SerialPrintString("\r\n[KEY DOWN pressed!]");
     // Start or cancel RSSI polling
     if ( simpleBLEState == BLE_STATE_CONNECTED )
     {
@@ -570,7 +563,7 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
         GAPCentralRole_CancelRssi( simpleBLEConnHandle );
 
         LCD_WRITE_STRING( "RSSI Cancelled", HAL_LCD_LINE_1 );
-        SerialPrintString("RSSI Cancelled\r\n");
+        SerialPrintString("\r\nRSSI Cancelled");
       }
     }
   }
@@ -793,7 +786,7 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
 }
 
 /*********************************************************************
- * @fn      pairStateCB
+ * @fn      simpleBLECentralPairStateCB
  *
  * @brief   Pairing state callback.
  *
@@ -847,15 +840,17 @@ static void simpleBLECentralPasscodeCB( uint8 *deviceAddr, uint16 connectionHand
   // Create random passcode
   LL_Rand( ((uint8 *) &passcode), sizeof( uint32 ));
   passcode %= 1000000;
-
+  
+  // using temp code
+  passcode = 123456;
+  
   // Display passcode to user
   if ( uiOutputs != 0 )
   {
     LCD_WRITE_STRING( "Passcode:",  HAL_LCD_LINE_1 );
-    SerialPrintString("Passcode:\r\n");
+    SerialPrintString("\r\nPasscode:");
     LCD_WRITE_STRING( (char *) _ltoa(passcode, str, 10),  HAL_LCD_LINE_2 );
     SerialPrintString((char *) _ltoa(passcode, str, 10));
-    SerialPrintString("\r\n");
   }
 
   // Send passcode response

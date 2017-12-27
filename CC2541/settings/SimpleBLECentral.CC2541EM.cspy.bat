@@ -25,7 +25,7 @@ if not "%~1" == "" goto debugFile
 
 @echo on 
 
-"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.0\common\bin\cspybat" -f "D:\BLE-CC254x-1.3.2\Projects\ble\SimpleBLECentral_SerialPrint\CC2541\settings\SimpleBLECentral.CC2541EM.general.xcl" --backend -f "D:\BLE-CC254x-1.3.2\Projects\ble\SimpleBLECentral_SerialPrint\CC2541\settings\SimpleBLECentral.CC2541EM.driver.xcl" 
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.0\common\bin\cspybat" -f "D:\BLE-CC254x-1.3.2\Projects\ble\SimpleBLECentral_glove\CC2541\settings\SimpleBLECentral.CC2541EM.general.xcl" --backend -f "D:\BLE-CC254x-1.3.2\Projects\ble\SimpleBLECentral_glove\CC2541\settings\SimpleBLECentral.CC2541EM.driver.xcl" 
 
 @echo off 
 goto end 
@@ -34,7 +34,7 @@ goto end
 
 @echo on 
 
-"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.0\common\bin\cspybat" -f "D:\BLE-CC254x-1.3.2\Projects\ble\SimpleBLECentral_SerialPrint\CC2541\settings\SimpleBLECentral.CC2541EM.general.xcl" "--debug_file=%~1" --backend -f "D:\BLE-CC254x-1.3.2\Projects\ble\SimpleBLECentral_SerialPrint\CC2541\settings\SimpleBLECentral.CC2541EM.driver.xcl" 
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.0\common\bin\cspybat" -f "D:\BLE-CC254x-1.3.2\Projects\ble\SimpleBLECentral_glove\CC2541\settings\SimpleBLECentral.CC2541EM.general.xcl" "--debug_file=%~1" --backend -f "D:\BLE-CC254x-1.3.2\Projects\ble\SimpleBLECentral_glove\CC2541\settings\SimpleBLECentral.CC2541EM.driver.xcl" 
 
 @echo off 
 :end
