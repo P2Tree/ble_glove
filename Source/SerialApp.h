@@ -11,8 +11,8 @@ extern "C"
 //#define SBP_UART_FC                    TRUE
 #define SBP_UART_FC                    FALSE
 #define SBP_UART_FC_THRESHOLD          48
-#define SBP_UART_RX_BUF_SIZE           128
-#define SBP_UART_TX_BUF_SIZE           128
+#define SBP_UART_RX_BUF_SIZE           512
+#define SBP_UART_TX_BUF_SIZE           512
 #define SBP_UART_IDLE_TIMEOUT          6
 #define SBP_UART_INT_ENABLE            TRUE
 #define SBP_UART_BR                     HAL_UART_BR_57600 

@@ -181,6 +181,7 @@ static const uint8 simpleBLEDeviceName[GAP_DEVICE_NAME_LEN] = "Simple BLE Centra
 // Number of scan results and scan result index
 static uint8 simpleBLEScanRes;
 static uint8 simpleBLEScanIdx;
+static uint8 simpleBLEScanSelectedIdx;
 
 // Scan result list
 static gapDevRec_t simpleBLEDevList[DEFAULT_MAX_SCAN_RES];
@@ -227,6 +228,7 @@ static void simpleBLECentralPasscodeCB( uint8 *deviceAddr, uint16 connectionHand
 static void simpleBLECentralPairStateCB( uint16 connHandle, uint8 state, uint8 status );
 static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys );
 static void simpleBLECentralSelectDevice( void );
+static void simpleBLECentralConnectDevice( void );
 static void simpleBLECentral_ProcessOSALMsg( osal_event_hdr_t *pMsg );
 static void simpleBLEGATTDiscoveryEvent( gattMsgEvent_t *pMsg );
 static void simpleBLECentralStartDiscovery( void );
@@ -385,6 +387,13 @@ uint16 SimpleBLECentral_ProcessEvent( uint8 task_id, uint16 events )
     
     return ( events ^ WAIT_DISCOVERY_EVT );
   }
+
+  if (events & CONNECT_EVT )
+  {
+    simpleBLECentralConnectDevice( );
+
+    return ( events ^ CONNECT_EVT );
+  }
   // Discard unknown events
   return 0;
 }
@@ -511,8 +520,7 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
 
   if ( keys & HAL_KEY_CENTER )
   {
-    uint8 addrType;
-    uint8 *peerAddr;
+
     SerialPrintString("\r\n[KEY CENTER pressed!]");
     // Connect or disconnect
     if ( simpleBLEState == BLE_STATE_IDLE )
@@ -520,18 +528,7 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
       // if there is a scan result
       if ( simpleBLEScanRes > 0 )
       {
-        // connect to current device in scan result
-        peerAddr = simpleBLEDevList[simpleBLEScanIdx].addr;
-        addrType = simpleBLEDevList[simpleBLEScanIdx].addrType;
-
-        simpleBLEState = BLE_STATE_CONNECTING;
-
-        GAPCentralRole_EstablishLink( DEFAULT_LINK_HIGH_DUTY_CYCLE,
-                                      DEFAULT_LINK_WHITE_LIST,
-                                      addrType, peerAddr );
-
-        SerialPrintString("\r\nConnecting:");
-        SerialPrintString((uint8*)bdAddr2Str( peerAddr));SerialPrintString("\r\n");
+        // do nothing
       }
     }
     else if ( simpleBLEState == BLE_STATE_CONNECTING ||
@@ -568,12 +565,19 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
   }
 }
 
+/*********************************************************************
+ * @fn      simpleBLECentralSelectDevice
+ *
+ * @brief   Select a device with max rssi value
+ *
+ * @return  none
+ */
 static void simpleBLECentralSelectDevice()
 {
   if ( !simpleBLEScanning && simpleBLEScanRes > 0 )
   {
     simpleBLEScanIdx = 0;
-    uint8 maxIdx = 0;
+    simpleBLEScanSelectedIdx = 0;
     uint8 minRssi = 120;
     uint8 rssi;
     while ( simpleBLEScanIdx < simpleBLEScanRes )
@@ -581,15 +585,56 @@ static void simpleBLECentralSelectDevice()
       SerialPrintValue( "\r\nDevice", simpleBLEScanIdx + 1, 10);
       SerialPrintString((uint8*) bdAddr2Str( simpleBLEDevList[simpleBLEScanIdx].addr ));
       SerialPrintValue("\r\nRssi", simpleBLEDevList[simpleBLEScanIdx].rssi, 10);
+
       rssi = simpleBLEDevList[simpleBLEScanIdx].rssi;
       if ( rssi < minRssi )
       {
-        maxIdx = simpleBLEScanIdx;
+        simpleBLEScanSelectedIdx = simpleBLEScanIdx;
+        minRssi = rssi;
       }
       // Increment index of current result (with wraparound)
       simpleBLEScanIdx++;
     }
+
+    SerialPrintValue("\r\nSelect Device", simpleBLEScanSelectedIdx + 1, 10);
+    SerialPrintString(" to connect ");
+    SerialPrintString((uint8*) bdAddr2Str( simpleBLEDevList[simpleBLEScanSelectedIdx].addr ));
+    SerialPrintValue("\r\nRssi:", simpleBLEDevList[simpleBLEScanSelectedIdx].rssi, 10);
+    osal_set_event( simpleBLETaskId, CONNECT_EVT );
   }
+}
+
+/*********************************************************************
+ * @fn      simpleBLECentralConnectDevice
+ *
+ * @brief   Connect Device be selected
+ *
+ * @return  none
+ */
+static void simpleBLECentralConnectDevice()
+{
+  uint8 addrType;
+  uint8 *peerAddr;
+  if ( simpleBLEState == BLE_STATE_IDLE )
+  {
+    // if there is a scan result
+      if ( simpleBLEScanRes > 0 )
+      {
+        // connect to current device in scan result
+        peerAddr = simpleBLEDevList[simpleBLEScanSelectedIdx].addr;
+        addrType = simpleBLEDevList[simpleBLEScanSelectedIdx].addrType;
+
+        simpleBLEState = BLE_STATE_CONNECTING;
+
+        GAPCentralRole_EstablishLink( DEFAULT_LINK_HIGH_DUTY_CYCLE,
+                                      DEFAULT_LINK_WHITE_LIST,
+                                      addrType, peerAddr );
+
+        SerialPrintString("\r\nConnecting:");
+        SerialPrintString((uint8*)bdAddr2Str( peerAddr));SerialPrintString("\r\n");
+      }
+  }
+
 }
 
 /*********************************************************************
@@ -693,55 +738,53 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
 
     case GAP_DEVICE_INFO_EVENT:
       {
-        SerialPrintString("\r\nGAP Event: GAP_DEVICE_INFO_EVENT");
         // if filtering device discovery results based on service UUID
         //if ( DEFAULT_DEV_DISC_BY_SVC_UUID == TRUE )
-        //{
-          SerialPrintString("\r\n");
-          SerialPrintString(pEvent->deviceInfo.addr);
-          SerialPrintValue("\r\nRRSSII:", ~(pEvent->deviceInfo.rssi)+1, 10);
-          if ( simpleBLEFindSvcUuid( SIMPLEPROFILE_SERV_UUID,
-                                     pEvent->deviceInfo.pEvtData,
-                                     pEvent->deviceInfo.dataLen ) )
+        {
+          //if ( simpleBLEFindSvcUuid( SIMPLEPROFILE_SERV_UUID,
+          //                           pEvent->deviceInfo.pEvtData,
+          //                           pEvent->deviceInfo.dataLen ) )
           {
             
             simpleBLEAddDeviceInfo( pEvent->deviceInfo.addr, pEvent->deviceInfo.addrType, ~(pEvent->deviceInfo.rssi)+1);
           }
-        //}
+        }
       }
       break;
 
     case GAP_DEVICE_DISCOVERY_EVENT:
       {
-        SerialPrintString("\r\nGAP Event: GAP_DEVICE_DISCOVERY_EVENT");
         // discovery complete
         simpleBLEScanning = FALSE;
 
+        simpleBLEScanRes = pEvent->discCmpl.numDevs;
+
+/*
         // if not filtering device discovery results based on service UUID
         if ( DEFAULT_DEV_DISC_BY_SVC_UUID == FALSE )
         {
           // Copy results
-          simpleBLEScanRes = pEvent->discCmpl.numDevs;
+          
           osal_memcpy( simpleBLEDevList, pEvent->discCmpl.pDevList,
                        (sizeof( gapDevRec_t ) * pEvent->discCmpl.numDevs) );
         }
-
+*/
         SerialPrintValue("\r\nDevices Found", simpleBLEScanRes,10);
 
         if ( simpleBLEScanRes > 0 )
         {
-          SerialPrintString("<- To Select\r\n");
+          SerialPrintString("\r\nPress Left To Select");
+          SerialPrintString("\r\nPress Middle To Connect");
         }
 
         // initialize scan index to last device
-        simpleBLEScanIdx = simpleBLEScanRes;
+        //simpleBLEScanIdx = simpleBLEScanRes;
 
       }
       break;
 
     case GAP_LINK_ESTABLISHED_EVENT:
       {
-        SerialPrintString("\r\nGAP Event: GAP_LINK_ESTABLISHED_EVENT");
         if ( pEvent->gap.hdr.status == SUCCESS )
         {
           simpleBLEState = BLE_STATE_CONNECTED;
@@ -765,17 +808,14 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
           simpleBLERssi = FALSE;
           simpleBLEDiscState = BLE_DISC_STATE_IDLE;
 
-          LCD_WRITE_STRING( "Connect Failed", HAL_LCD_LINE_1 );
-          SerialPrintString("Connect Failed: ");
-          LCD_WRITE_STRING_VALUE( "Reason:", pEvent->gap.hdr.status, 10, HAL_LCD_LINE_2 );
-          SerialPrintValue("Reason:",  pEvent->gap.hdr.status,10);
+          SerialPrintString("\r\nConnect Failed");
+          SerialPrintValue(" Reason:",  pEvent->gap.hdr.status,10);
         }
       }
       break;
 
     case GAP_LINK_TERMINATED_EVENT:
       {
-        SerialPrintString("\r\nGAP Event: GAP_LINK_TERMINATED_EVENT");
         simpleBLEState = BLE_STATE_IDLE;
         simpleBLEConnHandle = GAP_CONNHANDLE_INIT;
         simpleBLERssi = FALSE;
@@ -783,18 +823,14 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
         simpleBLECharHdl = 0;
         simpleBLEProcedureInProgress = FALSE;
 
-        LCD_WRITE_STRING( "Disconnected", HAL_LCD_LINE_1 );
-        SerialPrintString("Disconnected: ");
-        LCD_WRITE_STRING_VALUE( "Reason:", pEvent->linkTerminate.reason,
-                                10, HAL_LCD_LINE_2 );
-        SerialPrintValue("Reason:",  pEvent->linkTerminate.reason,10);
+        SerialPrintString("\r\nDisconnected");
+        SerialPrintValue(" Reason:",  pEvent->linkTerminate.reason,10);
       }
       break;
 
     case GAP_LINK_PARAM_UPDATE_EVENT:
       {
         SerialPrintString("\r\nGAP Event: GAP_LINK_PARAM_UPDATE_EVENT");
-        LCD_WRITE_STRING( "Param Update", HAL_LCD_LINE_1 );
       }
       break;
 
