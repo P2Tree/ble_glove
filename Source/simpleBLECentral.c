@@ -76,7 +76,7 @@
 #define DEFAULT_MAX_SCAN_RES                  8
 
 // Scan duration in ms
-#define DEFAULT_SCAN_DURATION                 500
+#define DEFAULT_SCAN_DURATION                 1000
 
 // Discovey mode (limited, general, all)
 #define DEFAULT_DISCOVERY_MODE                DEVDISC_MODE_ALL
@@ -100,10 +100,10 @@
 #define DEFAULT_ENABLE_UPDATE_REQUEST         FALSE
 
 // Minimum connection interval (units of 1.25ms) if automatic parameter update request is enabled
-#define DEFAULT_UPDATE_MIN_CONN_INTERVAL      400
+#define DEFAULT_UPDATE_MIN_CONN_INTERVAL      4
 
 // Maximum connection interval (units of 1.25ms) if automatic parameter update request is enabled
-#define DEFAULT_UPDATE_MAX_CONN_INTERVAL      800
+#define DEFAULT_UPDATE_MAX_CONN_INTERVAL      8
 
 // Slave latency to use if automatic parameter update request is enabled
 #define DEFAULT_UPDATE_SLAVE_LATENCY          0
@@ -112,7 +112,7 @@
 #define DEFAULT_UPDATE_CONN_TIMEOUT           600
 
 // Default passcode
-#define DEFAULT_PASSCODE                      000000
+#define DEFAULT_PASSCODE                      123456
 
 // Default GAP pairing mode
 #define DEFAULT_PAIRING_MODE                  GAPBOND_PAIRING_MODE_WAIT_FOR_REQ
@@ -132,6 +132,9 @@
 // TRUE to filter discovery results on desired service UUID
 #define DEFAULT_DEV_DISC_BY_SVC_UUID          FALSE
 
+// Checking period for pressing key if this key is still be pressed 
+#define WORKING_REQ_CHECK_PERIOD              50
+
 // Application states
 enum
 {
@@ -147,6 +150,13 @@ enum
   BLE_DISC_STATE_IDLE,                // Idle
   BLE_DISC_STATE_SVC,                 // Service discovery
   BLE_DISC_STATE_CHAR                 // Characteristic discovery
+};
+
+// Working states
+enum
+{
+  WORKKEY_PRESSED,
+  WORKKEY_RELEASE
 };
 
 /*********************************************************************
@@ -220,6 +230,10 @@ static uint8 defaultDeviceName[] = { 0x54, 0x4A, 0x47, 0x51 };  // 'T', 'J', 'G'
 // GAP scan response data length
 static uint8 defaultDeviceNameLength = 4;
 
+static attWriteReq_t workingReq;
+
+static uint8 workingState = WORKKEY_RELEASE;
+
 /*********************************************************************
  * LOCAL FUNCTIONS
  */
@@ -230,6 +244,7 @@ static void simpleBLECentralPasscodeCB( uint8 *deviceAddr, uint16 connectionHand
                                         uint8 uiInputs, uint8 uiOutputs );
 static void simpleBLECentralPairStateCB( uint16 connHandle, uint8 state, uint8 status );
 static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys );
+static void SendWorkingState( void );
 static void simpleBLECentralSearchDevice( void );
 static void simpleBLECentralSelectDevice( void );
 static void simpleBLEAddDeviceInfo( uint8 *pAddr, uint8 addrType, int8 rssi);
@@ -403,11 +418,17 @@ uint16 SimpleBLECentral_ProcessEvent( uint8 task_id, uint16 events )
     return ( events ^ SELECT_EVT );
   }
 
-  if (events & CONNECT_EVT )
+  if ( events & CONNECT_EVT )
   {
     simpleBLECentralConnectDevice( );
 
     return ( events ^ CONNECT_EVT );
+  }
+  if ( events & WORKING_REQ_EVT )
+  {
+    SendWorkingState();
+
+    return ( events ^ WORKING_REQ_EVT );
   }
   // Discard unknown events
   return 0;
@@ -453,50 +474,28 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
 {
   (void)shift;  // Intentionally unreferenced parameter
 
+  if ( keys & HAL_KEY_SW_6 )
+  {
+    SerialPrintString("\r\n[KEY SW 6 pressed!]");
+
+    //if ( simpleBLEState == BLE_STATE_CONNECTED &&
+    //          simpleBLECharHdl != 0 &&
+    //          simpleBLEProcedureInProgress == FALSE )
+    if ( simpleBLEState == BLE_STATE_CONNECTED )
+    {
+      osal_set_event(simpleBLETaskId, WORKING_REQ_EVT);
+    }
+  }
+
   if ( keys & HAL_KEY_UP )
   {
-    // Start or stop discovery
     SerialPrintString("\r\n[KEY UP pressed!]");
-    if ( simpleBLEState == BLE_STATE_CONNECTED &&
-              simpleBLECharHdl != 0 &&
-              simpleBLEProcedureInProgress == FALSE )
-    {
-      uint8 status;
-
-      // Do a read or write as long as no other read or write is in progress
-      if ( simpleBLEDoWrite )
-      {
-        // Do a write
-        attWriteReq_t req;
-
-        req.handle = simpleBLECharHdl;
-        req.len = 1;
-        req.value[0] = simpleBLECharVal;
-        req.sig = 0;
-        req.cmd = 0;
-        status = GATT_WriteCharValue( simpleBLEConnHandle, &req, simpleBLETaskId );
-      }
-      else
-      {
-        // Do a read
-        attReadReq_t req;
-
-        req.handle = simpleBLECharHdl;
-        status = GATT_ReadCharValue( simpleBLEConnHandle, &req, simpleBLETaskId );
-      }
-
-      if ( status == SUCCESS )
-      {
-        simpleBLEProcedureInProgress = TRUE;
-        //simpleBLEDoWrite = !simpleBLEDoWrite;
-      }
-    }
   }
 
   if ( keys & HAL_KEY_LEFT )
   {
     SerialPrintString("\r\n[KEY LEFT pressed!]");
-    osal_set_event( simpleBLETaskId, SELECT_EVT );
+    osal_set_event( simpleBLETaskId, START_SEARCH_EVT );
   }
 
   if ( keys & HAL_KEY_RIGHT )
@@ -551,7 +550,75 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
   }
 }
 
-static void simpleBLECentralSearchDevice()
+/*********************************************************************
+ * @fn      SendWorkingState
+ *
+ * @brief   Send current key state to remote device
+ *
+ * @param   void
+ *
+ * @return  none
+ */
+void SendWorkingState( void )
+{
+  bool isPressing = HalKeyPressing(HAL_KEY_SW_6);
+
+  workingReq.handle = simpleBLECharHdl;
+  workingReq.len = 1;
+  workingReq.sig = 0;
+  workingReq.cmd = 0;
+
+  //SerialPrintValue("\r\nisPressing", isPressing, 10);
+  //SerialPrintValue("\r\nworkingState", workingState, 10);
+  
+  if ( isPressing )
+  {
+    if ( workingState == WORKKEY_RELEASE )
+    {
+      workingReq.value[0] = 1;
+      SerialPrintString("\r\nsend press");
+      uint8 tmp = GATT_WriteCharValue(simpleBLEConnHandle, &workingReq, simpleBLETaskId);
+      SerialPrintValue("tmp", tmp, 10);
+      if (tmp == SUCCESS)
+      {
+        simpleBLEProcedureInProgress = TRUE;
+        workingState = WORKKEY_PRESSED;
+        SerialPrintString("\r\nsend press success");
+      }
+    }
+    osal_start_timerEx( simpleBLETaskId, WORKING_REQ_EVT, WORKING_REQ_CHECK_PERIOD);
+  }
+  else
+  {
+    if ( workingState == WORKKEY_PRESSED )
+    {
+      workingReq.value[0] = 0;
+      SerialPrintString("\r\nsend release");
+      uint8 tmp = GATT_WriteCharValue(simpleBLEConnHandle, &workingReq, simpleBLETaskId);
+      SerialPrintValue("tmp", tmp, 10);
+      if (tmp == SUCCESS)
+      {
+        simpleBLEProcedureInProgress = TRUE;
+        workingState = WORKKEY_RELEASE;
+        SerialPrintString("\r\nsend release success");
+      }
+    }
+    osal_stop_timerEx( simpleBLETaskId, WORKING_REQ_EVT);
+  }
+  // other cases do nothing
+
+}
+
+/*********************************************************************
+ * @fn      simpleBLECentralSearchDevice
+ *
+ * @brief   start to search device
+ *
+ * @param   none
+ *
+ * @return  none
+ */
+static void simpleBLECentralSearchDevice( void )
 {
   if ( simpleBLEState != BLE_STATE_CONNECTED )
   {
@@ -693,8 +760,8 @@ static void simpleBLECentralProcessGATTMsg( gattMsgEvent_t *pMsg )
     }
     else
     {
-      // After a succesful write, display the value that was written and increment value
-      uint8 temp=simpleBLECharVal;
+      // a succesful write
+      uint8 temp = workingReq.value[0];
       SerialPrintValue( "\r\nWrite sent:", temp, 10);
     }
 
@@ -841,7 +908,6 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
 
     case GAP_LINK_PARAM_UPDATE_EVENT:
       {
-        SerialPrintString("\r\nGAP Event: GAP_LINK_PARAM_UPDATE_EVENT");
       }
       break;
 
@@ -1037,6 +1103,14 @@ static void simpleBLEGATTDiscoveryEvent( gattMsgEvent_t *pMsg )
 
   }
 }
+
+/*********************************************************************
+ * @fn      simpleBLEFindDeviceName
+ *
+ * @brief   check scan device's name is equal with default device name
+ *
+ * @return  bool, TRUE for equal and FALSE for unequal
+ */
 static bool simpleBLEFindDeviceName( uint8* pData, uint8 dataLen)
 {
   uint8 adLen;
@@ -1052,24 +1126,24 @@ static bool simpleBLEFindDeviceName( uint8* pData, uint8 dataLen)
     if ( adLen > 0)
     {
       adType = *pData;
-    }
-    if ( adType == GAP_ADTYPE_LOCAL_NAME_COMPLETE)
-    {
-      pData++;
-      adLen--;
-      while ( adLen > 0)
+      if ( adType == GAP_ADTYPE_LOCAL_NAME_COMPLETE)
       {
-        if (defaultDeviceName[defaultDeviceNameLength - adLen] != *pData++)
-        {
-          return FALSE;
-        }
+        pData++;
         adLen--;
+        while ( adLen > 0)
+        {
+          if (defaultDeviceName[defaultDeviceNameLength - adLen] != *pData++)
+          {
+            return FALSE;
+          }
+          adLen--;
+        }
+        return TRUE;
       }
-      return TRUE;
-    }
-    else
-    {
-      pData += adLen;
+      else
+      {
+        pData += adLen;
+      }
     }
   }
 

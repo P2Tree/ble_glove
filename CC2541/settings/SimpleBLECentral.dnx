@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <settings>
     <DebugChecksum>
-        <Checksum>2894195805</Checksum>
+        <Checksum>48846913</Checksum>
     </DebugChecksum>
     <Stack>
         <FillEnabled>0</FillEnabled>
@@ -19,19 +19,11 @@
     </CallStack>
     <struct_types>
         <Fmt0>gapDevRec_t-rssi	3	0</Fmt0>
+        <Fmt1>gapDeviceInfoEvent_t-rssi	3	0</Fmt1>
     </struct_types>
     <array_types>
         <Fmt0>uint8 [6]	5	0</Fmt0>
     </array_types>
-    <Breakpoints>
-        <Bp0>_ "STD_CODE" "{$PROJ_DIR$\..\Source\simpleBLECentral.c}.556.3" 1 0 0 0 "" 0 ""</Bp0>
-        <Bp1>_ "STD_CODE" "{$PROJ_DIR$\..\Source\simpleBLECentral.c}.593.7" 1 0 0 0 "" 0 ""</Bp1>
-        <Count>2</Count>
-    </Breakpoints>
-    <ChipconEmu>
-        <StopTimersOnHalt>0</StopTimersOnHalt>
-        <LeaveTargetRunning>1</LeaveTargetRunning>
-    </ChipconEmu>
     <LogFile>
         <LoggingEnabled>_ 0</LoggingEnabled>
         <LogFile>_ ""</LogFile>
@@ -41,6 +33,14 @@
         <LoggingEnabled>_ 0</LoggingEnabled>
         <LogFile>_ ""</LogFile>
     </TermIOLog>
+    <Breakpoints>
+        <Bp0>_ "STD_CODE" "{$PROJ_DIR$\..\Source\simpleBLECentral.c}.623.3" 1 0 0 0 "" 0 ""</Bp0>
+        <Count>1</Count>
+    </Breakpoints>
+    <ChipconEmu>
+        <StopTimersOnHalt>0</StopTimersOnHalt>
+        <LeaveTargetRunning>1</LeaveTargetRunning>
+    </ChipconEmu>
     <Aliases>
         <Count>0</Count>
         <SuppressDialog>0</SuppressDialog>
