@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <settings>
     <DebugChecksum>
-        <Checksum>1296327775</Checksum>
+        <Checksum>2894195805</Checksum>
     </DebugChecksum>
     <Stack>
         <FillEnabled>0</FillEnabled>
@@ -24,8 +24,8 @@
         <Fmt0>uint8 [6]	5	0</Fmt0>
     </array_types>
     <Breakpoints>
-        <Bp0>_ "STD_CODE" "{$PROJ_DIR$\..\Source\simpleBLECentral.c}.552.7" 1 0 0 0 "" 0 ""</Bp0>
-        <Bp1>_ "STD_CODE" "{$PROJ_DIR$\..\Source\simpleBLECentral.c}.592.9" 1 0 0 0 "" 0 ""</Bp1>
+        <Bp0>_ "STD_CODE" "{$PROJ_DIR$\..\Source\simpleBLECentral.c}.556.3" 1 0 0 0 "" 0 ""</Bp0>
+        <Bp1>_ "STD_CODE" "{$PROJ_DIR$\..\Source\simpleBLECentral.c}.593.7" 1 0 0 0 "" 0 ""</Bp1>
         <Count>2</Count>
     </Breakpoints>
     <ChipconEmu>

@@ -56,9 +56,10 @@ extern "C"
 
 // Simple BLE Central Task Events
 #define START_DEVICE_EVT                              0x0001
-#define START_DISCOVERY_EVT                           0x0002
-#define WAIT_DISCOVERY_EVT                            0x0004
+#define DISCOVERY_EVT                           0x0002
+#define SELECT_EVT                            0x0004
 #define CONNECT_EVT                                   0x0008
+#define START_SEARCH_EVT                              0x0010
 
 /*********************************************************************
  * MACROS
