@@ -109,7 +109,7 @@
 #define DEFAULT_UPDATE_SLAVE_LATENCY          0
 
 // Supervision timeout value (units of 10ms) if automatic parameter update request is enabled
-#define DEFAULT_UPDATE_CONN_TIMEOUT           600
+#define DEFAULT_UPDATE_CONN_TIMEOUT           100
 
 // Default passcode
 #define DEFAULT_PASSCODE                      123456
@@ -576,15 +576,16 @@ void SendWorkingState( void )
     if ( workingState == WORKKEY_RELEASE )
     {
       workingReq.value[0] = 1;
-      SerialPrintString("\r\nsend press");
-      uint8 tmp = GATT_WriteCharValue(simpleBLEConnHandle, &workingReq, simpleBLETaskId);
-      SerialPrintValue("tmp", tmp, 10);
-      if (tmp == SUCCESS)
-      {
-        simpleBLEProcedureInProgress = TRUE;
-        workingState = WORKKEY_PRESSED;
-        SerialPrintString("\r\nsend press success");
-      }
+      SerialPrintString("\r\nsending press");
+
+        uint8 tmp = GATT_WriteCharValue(simpleBLEConnHandle, &workingReq, simpleBLETaskId);
+        SerialPrintValue(" tmp", tmp, 10);
+        if (tmp == SUCCESS)
+        {
+          simpleBLEProcedureInProgress = TRUE;
+          workingState = WORKKEY_PRESSED;
+          SerialPrintString("\r\nsend press success");
+        }
     }
     osal_start_timerEx( simpleBLETaskId, WORKING_REQ_EVT, WORKING_REQ_CHECK_PERIOD);
   }
@@ -593,14 +594,18 @@ void SendWorkingState( void )
     if ( workingState == WORKKEY_PRESSED )
     {
       workingReq.value[0] = 0;
-      SerialPrintString("\r\nsend release");
-      uint8 tmp = GATT_WriteCharValue(simpleBLEConnHandle, &workingReq, simpleBLETaskId);
-      SerialPrintValue("tmp", tmp, 10);
-      if (tmp == SUCCESS)
+
+      SerialPrintString("\r\nsending release");
+
       {
-        simpleBLEProcedureInProgress = TRUE;
-        workingState = WORKKEY_RELEASE;
-        SerialPrintString("\r\nsend release success");
+        uint8 tmp = GATT_WriteCharValue(simpleBLEConnHandle, &workingReq, simpleBLETaskId);
+        SerialPrintValue(" tmp", tmp, 10);
+        if (tmp == SUCCESS)
+        {
+          simpleBLEProcedureInProgress = TRUE;
+          workingState = WORKKEY_RELEASE;
+          SerialPrintString("\r\nsend release success");
+        }
       }
     }
     osal_stop_timerEx( simpleBLETaskId, WORKING_REQ_EVT);

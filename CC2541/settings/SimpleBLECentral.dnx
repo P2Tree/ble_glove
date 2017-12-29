@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <settings>
     <DebugChecksum>
-        <Checksum>48846913</Checksum>
+        <Checksum>3982178526</Checksum>
     </DebugChecksum>
     <Stack>
         <FillEnabled>0</FillEnabled>
@@ -24,6 +24,14 @@
     <array_types>
         <Fmt0>uint8 [6]	5	0</Fmt0>
     </array_types>
+    <Breakpoints>
+        <Bp0>_ "STD_CODE" "{$PROJ_DIR$\..\Source\simpleBLECentral.c}.656.3" 1 0 0 0 "" 0 ""</Bp0>
+        <Count>1</Count>
+    </Breakpoints>
+    <ChipconEmu>
+        <StopTimersOnHalt>0</StopTimersOnHalt>
+        <LeaveTargetRunning>1</LeaveTargetRunning>
+    </ChipconEmu>
     <LogFile>
         <LoggingEnabled>_ 0</LoggingEnabled>
         <LogFile>_ ""</LogFile>
@@ -33,14 +41,6 @@
         <LoggingEnabled>_ 0</LoggingEnabled>
         <LogFile>_ ""</LogFile>
     </TermIOLog>
-    <Breakpoints>
-        <Bp0>_ "STD_CODE" "{$PROJ_DIR$\..\Source\simpleBLECentral.c}.623.3" 1 0 0 0 "" 0 ""</Bp0>
-        <Count>1</Count>
-    </Breakpoints>
-    <ChipconEmu>
-        <StopTimersOnHalt>0</StopTimersOnHalt>
-        <LeaveTargetRunning>1</LeaveTargetRunning>
-    </ChipconEmu>
     <Aliases>
         <Count>0</Count>
         <SuppressDialog>0</SuppressDialog>
