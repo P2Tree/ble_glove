@@ -305,6 +305,7 @@
                     <state>HAL_LCD=TRUE</state>
                     <state>HAL_LED=TRUE</state>
                     <state>HAL_UART=TRUE</state>
+                    <state>UART_DEBUG_MODE=TRUE</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
