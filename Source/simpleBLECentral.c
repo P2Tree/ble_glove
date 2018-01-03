@@ -349,7 +349,7 @@ void SimpleBLECentral_Init( uint8 task_id )
   // makes sure LEDs are off
   HalLedSet( (HAL_LED_1 | HAL_LED_2), HAL_LED_MODE_OFF );
 
-#if !defined ( UART_DEBUG_MODE )
+#if ( defined POWER_SAVING )
   // Power saving mode
   osal_pwrmgr_device( PWRMGR_BATTERY );
 #endif
@@ -485,7 +485,6 @@ static void simpleBLECentral_ProcessOSALMsg( osal_event_hdr_t *pMsg )
  *
  * @return  none
  */
-uint8 gStatus;
 static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
 {
   (void)shift;  // Intentionally unreferenced parameter
@@ -547,7 +546,7 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
       // disconnect
       simpleBLEState = BLE_STATE_DISCONNECTING;
 
-      gStatus = GAPCentralRole_TerminateLink( simpleBLEConnHandle );
+      GAPCentralRole_TerminateLink( simpleBLEConnHandle );
 
 #if defined ( UART_DEBUG_MODE )
       SerialPrintString("\r\nDisconnecting");
@@ -770,53 +769,12 @@ static void simpleBLECentralProcessGATTMsg( gattMsgEvent_t *pMsg )
     return;
   }
 
-  if ( ( pMsg->method == ATT_READ_RSP ) ||
-       ( ( pMsg->method == ATT_ERROR_RSP ) &&
-         ( pMsg->msg.errorRsp.reqOpcode == ATT_READ_REQ ) ) )
-  {
-    if ( pMsg->method == ATT_ERROR_RSP )
-    {
-#if defined ( UART_DEBUG_MODE )
-      uint8 status = 
-#endif
-        pMsg->msg.errorRsp.errCode;
-
-#if defined ( UART_DEBUG_MODE )
-      SerialPrintValue("\r\nRead Error", status, 10);
-#endif
-    }
-    else
-    {
-      // After a successful read, display the read value
-#if defined ( UART_DEBUG_MODE )
-      uint8 valueRead = 
-#endif
-        pMsg->msg.readRsp.value[0];
-
-#if defined ( UART_DEBUG_MODE )
-      SerialPrintValue("\r\nRead rsp:", valueRead, 10);
-#endif
-    }
-
-    simpleBLEProcedureInProgress = FALSE;
-  }
-  else if ( ( pMsg->method == ATT_WRITE_RSP ) ||
+  if ( ( pMsg->method == ATT_WRITE_RSP ) ||
        ( ( pMsg->method == ATT_ERROR_RSP ) &&
          ( pMsg->msg.errorRsp.reqOpcode == ATT_WRITE_REQ ) ) )
   {
 
-    if ( pMsg->method == ATT_ERROR_RSP == ATT_ERROR_RSP )
-    {
-#if defined ( UART_DEBUG_MODE )
-      uint8 status = 
-#endif
-        pMsg->msg.errorRsp.errCode;
-
-#if defined ( UART_DEBUG_MODE )
-      SerialPrintValue( "\r\nWrite Error", status, 10);
-#endif
-    }
-    else
+    if ( pMsg->method == ATT_WRITE_RSP ) 
     {
       // a succesful write
 #if defined ( UART_DEBUG_MODE )
@@ -828,9 +786,50 @@ static void simpleBLECentralProcessGATTMsg( gattMsgEvent_t *pMsg )
       SerialPrintValue( "\r\nWrite sent:", temp, 10);
 #endif
     }
+    else
+    {
+#if defined ( UART_DEBUG_MODE )
+      uint8 status = 
+#endif
+        pMsg->msg.errorRsp.errCode;
+
+#if defined ( UART_DEBUG_MODE )
+      SerialPrintValue( "\r\nWrite Error", status, 10);
+#endif
+    }
 
     simpleBLEProcedureInProgress = FALSE;
 
+  }
+  else if ( ( pMsg->method == ATT_READ_RSP ) ||
+       ( ( pMsg->method == ATT_ERROR_RSP ) &&
+         ( pMsg->msg.errorRsp.reqOpcode == ATT_READ_REQ ) ) )
+  {
+    if ( pMsg->method == ATT_READ_RSP ) 
+    {
+      // After a successful read, display the read value
+#if defined ( UART_DEBUG_MODE )
+      uint8 valueRead = 
+#endif
+        pMsg->msg.readRsp.value[0];
+
+#if defined ( UART_DEBUG_MODE )
+      SerialPrintValue("\r\nRead rsp:", valueRead, 10);
+#endif
+    }
+    else
+    {
+#if defined ( UART_DEBUG_MODE )
+      uint8 status = 
+#endif
+        pMsg->msg.errorRsp.errCode;
+
+#if defined ( UART_DEBUG_MODE )
+      SerialPrintValue("\r\nRead Error", status, 10);
+#endif
+    }
+
+    simpleBLEProcedureInProgress = FALSE;
   }
   else if ( simpleBLEDiscState != BLE_DISC_STATE_IDLE )
   {
@@ -951,6 +950,7 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
           SerialPrintString("\r\nConnected: ");
           SerialPrintString((uint8*) bdAddr2Str( pEvent->linkCmpl.devAddr ));//SerialPrintString("\r\n");
 #endif
+          
 
         }
         else
