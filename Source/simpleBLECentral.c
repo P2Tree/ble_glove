@@ -133,7 +133,7 @@
 #define DEFAULT_DEV_DISC_BY_SVC_UUID          FALSE
 
 // Checking period for pressing key if this key is still be pressed 
-#define WORKING_REQ_CHECK_PERIOD              100
+#define WORKING_REQ_CHECK_PERIOD              50
 
 // Open debug log in uart port, you should also open HAL_UART=TRUE
 //#define UART_DEBUG_MODE                       TRUE
@@ -500,6 +500,9 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
     //          simpleBLEProcedureInProgress == FALSE )
     if ( simpleBLEState == BLE_STATE_CONNECTED )
     {
+      workingState = WORKKEY_RELEASE;
+      SendWorkingState();
+
       osal_set_event(simpleBLETaskId, WORKING_REQ_EVT);
     }
   }
@@ -515,19 +518,6 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
 
   if ( keys & HAL_KEY_RIGHT )
   {
-#if defined ( UART_DEBUG_MODE )
-    SerialPrintString("\r\n[KEY RIGHT pressed!]");
-#endif
-
-    // Connection update
-    if ( simpleBLEState == BLE_STATE_CONNECTED )
-    {
-      GAPCentralRole_UpdateLink( simpleBLEConnHandle,
-                                 DEFAULT_UPDATE_MIN_CONN_INTERVAL,
-                                 DEFAULT_UPDATE_MAX_CONN_INTERVAL,
-                                 DEFAULT_UPDATE_SLAVE_LATENCY,
-                                 DEFAULT_UPDATE_CONN_TIMEOUT );
-    }
   }
 
   if ( keys & HAL_KEY_LEFT )
@@ -596,7 +586,7 @@ void SendWorkingState( void )
   workingReq.handle = simpleBLECharHdl;
   workingReq.len = 1;
   workingReq.sig = 0;
-  workingReq.cmd = 0;
+  workingReq.cmd = 1;
 
   // 如果希望始终发送按键信息，则应该关掉workingState状态的判断，并且在isPressing的外边启动定时器，一直不关闭
   if ( isPressing )
@@ -606,7 +596,9 @@ void SendWorkingState( void )
       workingReq.value[0] = 1;
       //SerialPrintString("\r\nsending press");
 
-      uint8 tmp = GATT_WriteCharValue(simpleBLEConnHandle, &workingReq, simpleBLETaskId);
+      //uint8 tmp = GATT_WriteCharValue(simpleBLEConnHandle, &workingReq, simpleBLETaskId);
+      uint8 tmp = GATT_WriteNoRsp(simpleBLEConnHandle, &workingReq);
+
       if (tmp == SUCCESS)
       {
         simpleBLEProcedureInProgress = TRUE;
@@ -623,7 +615,8 @@ void SendWorkingState( void )
       workingReq.value[0] = 0;
       //SerialPrintString("\r\nsending release");
 
-      uint8 tmp = GATT_WriteCharValue(simpleBLEConnHandle, &workingReq, simpleBLETaskId);
+      //uint8 tmp = GATT_WriteCharValue(simpleBLEConnHandle, &workingReq, simpleBLETaskId);
+      uint8 tmp = GATT_WriteNoRsp(simpleBLEConnHandle, &workingReq);
       if (tmp == SUCCESS)
       {
         simpleBLEProcedureInProgress = TRUE;
@@ -635,8 +628,6 @@ void SendWorkingState( void )
   }
   
   //osal_start_timerEx( simpleBLETaskId, WORKING_REQ_EVT, WORKING_REQ_CHECK_PERIOD);
-
-  // other cases do nothing
 
 }
 
