@@ -48,6 +48,7 @@
 #include "hal_led.h"
 #include "hal_key.h"
 //#include "hal_lcd.h"
+#include "hal_adc.h"
 #include "gatt.h"
 #include "ll.h"
 #include "hci.h"
@@ -65,18 +66,22 @@
  * MACROS
  */
 
-// Length of bd addr as a string
-#define B_ADDR_STR_LEN                        15
+#if ( defined UART_DEBUG_MODE ) && ( !defined HAL_UART )
+#define HAL_UART    TRUE
+#endif
 
 /*********************************************************************
  * CONSTANTS
  */
 
+// Length of bd addr as a string
+#define B_ADDR_STR_LEN                        15
+
 // Maximum number of scan responses
-#define DEFAULT_MAX_SCAN_RES                  8
+#define DEFAULT_MAX_SCAN_RES                  4
 
 // Scan duration in ms
-#define DEFAULT_SCAN_DURATION                 1000
+#define DEFAULT_SCAN_DURATION                 500
 
 // Discovey mode (limited, general, all)
 #define DEFAULT_DISCOVERY_MODE                DEVDISC_MODE_ALL
@@ -129,8 +134,6 @@
 // Default service discovery timer delay in ms
 #define DEFAULT_SVC_DISCOVERY_DELAY           1000
 
-// TRUE to filter discovery results on desired service UUID
-#define DEFAULT_DEV_DISC_BY_SVC_UUID          FALSE
 
 // Checking period for pressing key if this key is still be pressed 
 #define WORKING_REQ_CHECK_PERIOD              50
@@ -218,15 +221,6 @@ static uint16 simpleBLESvcEndHdl = 0;
 // Discovered characteristic handle
 static uint16 simpleBLECharHdl = 0;
 
-// Value to write
-static uint8 simpleBLECharVal = 0;
-
-// Value read/write toggle, TRUE to write and FALSE to read
-static bool simpleBLEDoWrite = TRUE;
-
-// GATT read/write procedure state
-static bool simpleBLEProcedureInProgress = FALSE;
-
 // GAP scan response data
 static uint8 defaultDeviceName[] = { 0x54, 0x4A, 0x47, 0x51 };  // 'T', 'J', 'G', 'Q'
 
@@ -305,7 +299,7 @@ void SimpleBLECentral_Init( uint8 task_id )
 #endif
 
 #if defined ( UART_DEBUG_MODE )
-  SerialPrintString("\r\nSimpleBLECentral_SerialPrint Start init.");
+  SerialPrintString("\r\nSimpleBLECentral_Glove");
 #endif
 
   // Setup Central Profile
@@ -342,22 +336,22 @@ void SimpleBLECentral_Init( uint8 task_id )
   // Initialize GATT attributes
   GGS_AddService( GATT_ALL_SERVICES );         // GAP
   GATTServApp_AddService( GATT_ALL_SERVICES ); // GATT attributes
-
+  
+#if ( defined HAL_KEY )
   // Register for all key events - This app will handle all key events
   RegisterForKeys( simpleBLETaskId );
+#endif
 
+#if ( defined HAL_LED )
   // makes sure LEDs are off
-  HalLedSet( (HAL_LED_1 | HAL_LED_2), HAL_LED_MODE_OFF );
+  HalLedSet(HAL_LED_ALL, HAL_LED_MODE_OFF);
+#endif
 
 #if ( defined POWER_SAVING )
   // Power saving mode
   osal_pwrmgr_device( PWRMGR_BATTERY );
 #endif
 
-#if defined ( UART_DEBUG_MODE )
-  SerialPrintString("\r\nReady to Starting");
-#endif
-  
   // Setup a delayed profile startup
   osal_set_event( simpleBLETaskId, START_DEVICE_EVT );
 }
@@ -404,10 +398,7 @@ uint16 SimpleBLECentral_ProcessEvent( uint8 task_id, uint16 events )
     // Register with bond manager after starting device
     GAPBondMgr_Register( (gapBondCBs_t *) &simpleBLEBondCB );
 
-#if defined ( UART_DEBUG_MODE )
-    SerialPrintString("\r\nBLE Stack is running");
-#endif
-
+    // Start to search peripheral devices
     osal_set_event( simpleBLETaskId, START_SEARCH_EVT );
 
     return ( events ^ START_DEVICE_EVT );
@@ -423,6 +414,8 @@ uint16 SimpleBLECentral_ProcessEvent( uint8 task_id, uint16 events )
   if ( events & DISCOVERY_EVT )
   {
     simpleBLECentralStartDiscovery( );
+
+    osal_stop_timerEx( simpleBLETaskId, DISCOVERY_EVT );
 
     return ( events ^ DISCOVERY_EVT );
   }
@@ -440,12 +433,14 @@ uint16 SimpleBLECentral_ProcessEvent( uint8 task_id, uint16 events )
 
     return ( events ^ CONNECT_EVT );
   }
+
   if ( events & WORKING_REQ_EVT )
   {
     SendWorkingState();
 
     return ( events ^ WORKING_REQ_EVT );
   }
+
   // Discard unknown events
   return 0;
 }
@@ -472,7 +467,7 @@ static void simpleBLECentral_ProcessOSALMsg( osal_event_hdr_t *pMsg )
       break;
   }
 }
-
+static uint16 batteryValue; 
 /*********************************************************************
  * @fn      simpleBLECentral_HandleKeys
  *
@@ -489,58 +484,64 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
 {
   (void)shift;  // Intentionally unreferenced parameter
 
+  if ( keys & HAL_KEY_SW_7 )
+  {
+#if defined ( UART_DEBUG_MODE )
+    SerialPrintString("\r\n[KEY SW 7 pressed!]");
+#endif
+    HalLedBlink( HAL_LED_1, 1, 50, 100);
+    if ( simpleBLEState == BLE_STATE_CONNECTING ||
+              simpleBLEState == BLE_STATE_CONNECTED )
+    {
+      workingState = WORKKEY_RELEASE;
+      SendWorkingState();
+
+      // monitor release action of key
+      osal_set_event(simpleBLETaskId, WORKING_REQ_EVT);
+    }
+    else {
+      // Start to search peripheral devices
+      osal_set_event( simpleBLETaskId, START_SEARCH_EVT );
+    }
+  }
+  
   if ( keys & HAL_KEY_SW_6 )
   {
 #if defined ( UART_DEBUG_MODE )
     SerialPrintString("\r\n[KEY SW 6 pressed!]");
 #endif
+    
+    HalLedBlink( HAL_LED_1, 1, 50, 100);
+    
 
-    //if ( simpleBLEState == BLE_STATE_CONNECTED &&
-    //          simpleBLECharHdl != 0 &&
-    //          simpleBLEProcedureInProgress == FALSE )
-    if ( simpleBLEState == BLE_STATE_CONNECTED )
-    {
-      workingState = WORKKEY_RELEASE;
-      SendWorkingState();
-
-      osal_set_event(simpleBLETaskId, WORKING_REQ_EVT);
-    }
+    batteryValue = HalAdcRead( HAL_ADC_CHANNEL_7, HAL_ADC_RESOLUTION_10 );
+    SerialPrintValue("\r\nBattery: ", batteryValue, 10);
   }
+  
+#if !defined ( GLOVE )
+  if ( keys & HAL_KEY_UP ){}
 
-  if ( keys & HAL_KEY_UP )
-  {
-#if defined ( UART_DEBUG_MODE )
-    SerialPrintString("\r\n[KEY UP pressed!]");
-#endif
+  if ( keys & HAL_KEY_RIGHT ){}
 
-    osal_set_event( simpleBLETaskId, START_SEARCH_EVT );
-  }
-
-  if ( keys & HAL_KEY_RIGHT )
-  {
-  }
-
-  if ( keys & HAL_KEY_LEFT )
-  {
-  }
+  if ( keys & HAL_KEY_LEFT ){}
 
   if ( keys & HAL_KEY_CENTER )
   {
 #if defined ( UART_DEBUG_MODE )
     SerialPrintString("\r\n[KEY CENTER pressed!]");
 #endif
-    // disconnect
+
     if ( simpleBLEState == BLE_STATE_CONNECTING ||
               simpleBLEState == BLE_STATE_CONNECTED )
     {
-      // disconnect
+      // Disconnect current link
       simpleBLEState = BLE_STATE_DISCONNECTING;
 
       GAPCentralRole_TerminateLink( simpleBLEConnHandle );
-
-#if defined ( UART_DEBUG_MODE )
-      SerialPrintString("\r\nDisconnecting");
-#endif
+    }
+    else {
+      // Start to search peripheral devices
+      osal_set_event( simpleBLETaskId, START_SEARCH_EVT );
     }
   }
 
@@ -556,18 +557,21 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
       {
         simpleBLERssi = TRUE;
         GAPCentralRole_StartRssi( simpleBLEConnHandle, DEFAULT_RSSI_PERIOD );
+#if defined ( UART_DEBUG_MODE )
+        SerialPrintString("\r\nRSSI Started");
+#endif
       }
       else
       {
         simpleBLERssi = FALSE;
         GAPCentralRole_CancelRssi( simpleBLEConnHandle );
-
 #if defined ( UART_DEBUG_MODE )
         SerialPrintString("\r\nRSSI Cancelled");
 #endif
       }
     }
   }
+#endif // !defined ( GLOVE )
 }
 
 /*********************************************************************
@@ -581,7 +585,7 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
  */
 void SendWorkingState( void )
 {
-  bool isPressing = HalKeyPressing(HAL_KEY_SW_6);
+  bool isPressing = HalKeyPressing(HAL_KEY_SW_7);
 
   workingReq.handle = simpleBLECharHdl;
   workingReq.len = 1;
@@ -601,7 +605,6 @@ void SendWorkingState( void )
 
       if (tmp == SUCCESS)
       {
-        simpleBLEProcedureInProgress = TRUE;
         workingState = WORKKEY_PRESSED;
         //SerialPrintString("\r\nsend press success");
       }
@@ -619,7 +622,6 @@ void SendWorkingState( void )
       uint8 tmp = GATT_WriteNoRsp(simpleBLEConnHandle, &workingReq);
       if (tmp == SUCCESS)
       {
-        simpleBLEProcedureInProgress = TRUE;
         workingState = WORKKEY_RELEASE;
         //SerialPrintString("\r\nsend release success");
       }
@@ -704,6 +706,7 @@ static void simpleBLECentralSelectDevice()
     SerialPrintValue("\r\nRssi:", simpleBLEDevList[simpleBLEScanSelectedIdx].rssi, 10);
 #endif
 
+    // selected and begin to connect
     osal_set_event( simpleBLETaskId, CONNECT_EVT );
   }
 }
@@ -789,8 +792,6 @@ static void simpleBLECentralProcessGATTMsg( gattMsgEvent_t *pMsg )
 #endif
     }
 
-    simpleBLEProcedureInProgress = FALSE;
-
   }
   else if ( ( pMsg->method == ATT_READ_RSP ) ||
        ( ( pMsg->method == ATT_ERROR_RSP ) &&
@@ -820,7 +821,6 @@ static void simpleBLECentralProcessGATTMsg( gattMsgEvent_t *pMsg )
 #endif
     }
 
-    simpleBLEProcedureInProgress = FALSE;
   }
   else if ( simpleBLEDiscState != BLE_DISC_STATE_IDLE )
   {
@@ -870,17 +870,10 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
 
     case GAP_DEVICE_INFO_EVENT:
       {
-        // if filtering device discovery results based on service UUID
-        //if ( DEFAULT_DEV_DISC_BY_SVC_UUID == TRUE )
+        if ( simpleBLEFindDeviceName(pEvent->deviceInfo.pEvtData, pEvent->deviceInfo.dataLen))
         {
-          //if ( simpleBLEFindSvcUuid( SIMPLEPROFILE_SERV_UUID,
-          //                           pEvent->deviceInfo.pEvtData,
-          //                           pEvent->deviceInfo.dataLen ) )
-          if ( simpleBLEFindDeviceName(pEvent->deviceInfo.pEvtData, pEvent->deviceInfo.dataLen))
-          {
-            
-            simpleBLEAddDeviceInfo( pEvent->deviceInfo.addr, pEvent->deviceInfo.addrType, ~(pEvent->deviceInfo.rssi)+1);
-          }
+          
+          simpleBLEAddDeviceInfo( pEvent->deviceInfo.addr, pEvent->deviceInfo.addrType, ~(pEvent->deviceInfo.rssi)+1);
         }
       }
       break;
@@ -890,32 +883,10 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
         // discovery complete
         simpleBLEScanning = FALSE;
 
-        //simpleBLEScanRes = pEvent->discCmpl.numDevs;
-
-/*
-        // if not filtering device discovery results based on service UUID
-        if ( DEFAULT_DEV_DISC_BY_SVC_UUID == FALSE )
-        {
-          // Copy results
-          
-          osal_memcpy( simpleBLEDevList, pEvent->discCmpl.pDevList,
-                       (sizeof( gapDevRec_t ) * pEvent->discCmpl.numDevs) );
-        }
-*/
 #if defined ( UART_DEBUG_MODE )
-        SerialPrintValue("\r\nDevices Found", simpleBLEScanRes,10);
+        SerialPrintString("\r\nDiscovery Completed");
+        SerialPrintValue("\r\nTotal devices:", simpleBLEScanRes, 10);
 #endif
-
-        if ( simpleBLEScanRes > 0 )
-        {
-#if defined ( UART_DEBUG_MODE )
-          SerialPrintString("\r\nPress Left To Select");
-          SerialPrintString("\r\nPress Middle To Connect");
-#endif
-        }
-
-        // initialize scan index to last device
-        //simpleBLEScanIdx = simpleBLEScanRes;
 
         // begin to wait some time and then di
         osal_set_event( simpleBLETaskId, SELECT_EVT);
@@ -929,7 +900,6 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
         {
           simpleBLEState = BLE_STATE_CONNECTED;
           simpleBLEConnHandle = pEvent->linkCmpl.connectionHandle;
-          simpleBLEProcedureInProgress = TRUE;
 
           // If service discovery not performed initiate service discovery
           if ( simpleBLECharHdl == 0 )
@@ -966,7 +936,6 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
         simpleBLERssi = FALSE;
         simpleBLEDiscState = BLE_DISC_STATE_IDLE;
         simpleBLECharHdl = 0;
-        simpleBLEProcedureInProgress = FALSE;
 
 #if defined ( UART_DEBUG_MODE )
         SerialPrintString("\r\nDisconnected");
@@ -1175,13 +1144,11 @@ static void simpleBLEGATTDiscoveryEvent( gattMsgEvent_t *pMsg )
                                        pMsg->msg.readByTypeRsp.dataList[1] );
 
 #if defined ( UART_DEBUG_MODE )
-      SerialPrintString("\r\nSimple Svc Found");
+      SerialPrintString("\r\nSimple Service Found");
 #endif
-      simpleBLEProcedureInProgress = FALSE;
     }
 
     simpleBLEDiscState = BLE_DISC_STATE_IDLE;
-
 
   }
 }

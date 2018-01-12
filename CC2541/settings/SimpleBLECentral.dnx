@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <settings>
     <DebugChecksum>
-        <Checksum>4074521410</Checksum>
+        <Checksum>1114691353</Checksum>
     </DebugChecksum>
     <Stack>
         <FillEnabled>0</FillEnabled>
@@ -17,6 +17,9 @@
     <CallStack>
         <ShowArgs>0</ShowArgs>
     </CallStack>
+    <Disassembly>
+        <MixedMode>1</MixedMode>
+    </Disassembly>
     <struct_types>
         <Fmt0>gapDevRec_t-rssi	3	0</Fmt0>
         <Fmt1>gapDeviceInfoEvent_t-rssi	3	0</Fmt1>
@@ -24,9 +27,11 @@
     <array_types>
         <Fmt0>uint8 [6]	5	0</Fmt0>
     </array_types>
+    <watch_formats>
+        <Fmt0>{W}1:halPwrMgtMode	2	0</Fmt0>
+    </watch_formats>
     <Breakpoints>
-        <Bp0>_ "STD_CODE" "{$PROJ_DIR$\..\Source\simpleBLECentral.c}.675.3" 1 0 0 0 "" 0 ""</Bp0>
-        <Count>1</Count>
+        <Count>0</Count>
     </Breakpoints>
     <ChipconEmu>
         <StopTimersOnHalt>0</StopTimersOnHalt>
