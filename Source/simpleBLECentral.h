@@ -61,6 +61,8 @@ extern "C"
 #define CONNECT_EVT                                   0x0008
 #define START_SEARCH_EVT                              0x0010
 #define WORKING_REQ_EVT                               0x0020
+#define CHARGING_EVT                                  0x0040
+#define BATTERYVALUE_EVT                              0x0080
 /*********************************************************************
  * MACROS
  */

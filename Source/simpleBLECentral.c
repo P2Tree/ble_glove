@@ -138,8 +138,20 @@
 // Checking period for pressing key if this key is still be pressed 
 #define WORKING_REQ_CHECK_PERIOD              50
 
+// Checking period for charging
+#define CHARGING_PERIOD                       1000
+
 // Open debug log in uart port, you should also open HAL_UART=TRUE
 //#define UART_DEBUG_MODE                       TRUE
+
+// Battery Threshold, when lower than this value, attention low battery
+#define BATTERY_THRESHOLD                     400
+
+// Battery Value is low and recheck it every 1s
+#define BATTERYVALUE_LOW_PERIOD               1000
+
+// Battery Value is normal and recheck it every 60s
+#define BATTERYVALUE_NORMAL_PERIOD            1000
 
 // Application states
 enum
@@ -231,6 +243,9 @@ static attWriteReq_t workingReq;
 
 static uint8 workingState = WORKKEY_RELEASE;
 
+static bool BatteryLow = FALSE;
+
+
 /*********************************************************************
  * LOCAL FUNCTIONS
  */
@@ -242,6 +257,8 @@ static void simpleBLECentralPasscodeCB( uint8 *deviceAddr, uint16 connectionHand
 static void simpleBLECentralPairStateCB( uint16 connHandle, uint8 state, uint8 status );
 static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys );
 static void SendWorkingState( void );
+static void ChargingCheck(void);
+static void BatteryValueCheck(void);
 static void simpleBLECentralSearchDevice( void );
 static void simpleBLECentralSelectDevice( void );
 static void simpleBLEAddDeviceInfo( uint8 *pAddr, uint8 addrType, int8 rssi);
@@ -354,6 +371,11 @@ void SimpleBLECentral_Init( uint8 task_id )
 
   // Setup a delayed profile startup
   osal_set_event( simpleBLETaskId, START_DEVICE_EVT );
+  
+  // Bootup battery charging event
+  osal_set_event( simpleBLETaskId, CHARGING_EVT );
+
+  osal_set_event( simpleBLETaskId, BATTERYVALUE_EVT );
 }
 
 /*********************************************************************
@@ -440,6 +462,22 @@ uint16 SimpleBLECentral_ProcessEvent( uint8 task_id, uint16 events )
 
     return ( events ^ WORKING_REQ_EVT );
   }
+  
+  if ( events & CHARGING_EVT )
+  {
+    osal_stop_timerEx( simpleBLETaskId, CHARGING_EVT );
+    ChargingCheck();
+    
+    return ( events ^ CHARGING_EVT );
+  }
+
+  if ( events & BATTERYVALUE_EVT )
+  {
+    osal_stop_timerEx( simpleBLETaskId, BATTERYVALUE_EVT );
+    BatteryValueCheck();
+
+    return ( events ^ BATTERYVALUE_EVT );
+  }
 
   // Discard unknown events
   return 0;
@@ -467,7 +505,6 @@ static void simpleBLECentral_ProcessOSALMsg( osal_event_hdr_t *pMsg )
       break;
   }
 }
-static uint16 batteryValue; 
 /*********************************************************************
  * @fn      simpleBLECentral_HandleKeys
  *
@@ -484,12 +521,15 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
 {
   (void)shift;  // Intentionally unreferenced parameter
 
+#if defined ( GLOVE )
   if ( keys & HAL_KEY_SW_7 )
   {
 #if defined ( UART_DEBUG_MODE )
     SerialPrintString("\r\n[KEY SW 7 pressed!]");
 #endif
-    HalLedBlink( HAL_LED_1, 1, 50, 100);
+
+    //HalLedBlink( HAL_LED_1, 1, 50, 100);
+
     if ( simpleBLEState == BLE_STATE_CONNECTING ||
               simpleBLEState == BLE_STATE_CONNECTED )
     {
@@ -513,12 +553,13 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
     
     HalLedBlink( HAL_LED_1, 1, 50, 100);
     
-
-    batteryValue = HalAdcRead( HAL_ADC_CHANNEL_7, HAL_ADC_RESOLUTION_10 );
-    SerialPrintValue("\r\nBattery: ", batteryValue, 10);
   }
   
-#if !defined ( GLOVE )
+  if ( keys & HAL_CHARGE )
+  {
+    //HalLedBlink( HAL_LED_1, 1, 50, 100);
+  }
+#else
   if ( keys & HAL_KEY_UP ){}
 
   if ( keys & HAL_KEY_RIGHT ){}
@@ -793,6 +834,7 @@ static void simpleBLECentralProcessGATTMsg( gattMsgEvent_t *pMsg )
     }
 
   }
+#if 0
   else if ( ( pMsg->method == ATT_READ_RSP ) ||
        ( ( pMsg->method == ATT_ERROR_RSP ) &&
          ( pMsg->msg.errorRsp.reqOpcode == ATT_READ_REQ ) ) )
@@ -822,6 +864,7 @@ static void simpleBLECentralProcessGATTMsg( gattMsgEvent_t *pMsg )
     }
 
   }
+#endif
   else if ( simpleBLEDiscState != BLE_DISC_STATE_IDLE )
   {
     simpleBLEGATTDiscoveryEvent( pMsg );
@@ -846,6 +889,53 @@ static void simpleBLECentralRssiCB( uint16 connHandle, int8 rssi )
 #endif
 }
 
+/*********************************************************************
+ * @fn      ChargingCheck
+ *
+ * @brief   check if battery is charged or not
+ *
+ * @param   none
+ *
+ * @return  none
+ */
+static void ChargingCheck(void)
+{
+  bool chargeFlag = HalKeyPressing(HAL_CHARGE);
+  if ( chargeFlag )
+  {
+    HalLedBlink( HAL_LED_1, 1, 20, 1000);
+  }
+  osal_start_timerEx( simpleBLETaskId, CHARGING_EVT, CHARGING_PERIOD);
+}
+
+/*********************************************************************
+ * @fn      BatteryValueCheck
+ *
+ * @brief   check if battery value is low
+ *
+ * @param   none
+ *
+ * @return  none
+ */
+static void BatteryValueCheck(void)
+{
+  static uint16 batteryValue; 
+  batteryValue = HalAdcRead( HAL_ADC_CHANNEL_7, HAL_ADC_RESOLUTION_10 );
+  SerialPrintValue("\r\nBattery: ", batteryValue, 10);
+
+  if ( batteryValue < BATTERY_THRESHOLD)
+  {
+    // loop check battery value
+    BatteryLow = TRUE;
+    HalLedBlink( HAL_LED_1, 2, 50, 500);
+    osal_start_timerEx( simpleBLETaskId, BATTERYVALUE_EVT, BATTERYVALUE_LOW_PERIOD);
+  }
+  else
+  {
+    BatteryLow = FALSE;
+    osal_start_timerEx( simpleBLETaskId, BATTERYVALUE_EVT, BATTERYVALUE_NORMAL_PERIOD);
+  }
+}
 /*********************************************************************
  * @fn      simpleBLECentralEventCB
  *

@@ -6,6 +6,11 @@
 *.ko
 *.obj
 *.elf
+*.pbi
+*.pbd
+*.pbd.browse
+*.bpd.linf
+*.r51
 
 # Linker output
 *.ilk
@@ -35,6 +40,7 @@
 *.i*86
 *.x86_64
 *.hex
+*.d51
 
 # Debug files
 *.dSYM/
