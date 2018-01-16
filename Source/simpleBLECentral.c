@@ -59,8 +59,7 @@
 #include "simpleGATTprofile.h"
 #include "simpleBLECentral.h"
 
-//�������ڳ���
-#include "SerialApp.h"
+
 
 /*********************************************************************
  * MACROS
@@ -68,6 +67,11 @@
 
 #if ( defined UART_DEBUG_MODE ) && ( !defined HAL_UART )
 #define HAL_UART    TRUE
+#endif
+
+//�������ڳ���
+#if defined ( HAL_UART) && (HAL_UART == TRUE)
+  #include "SerialApp.h"
 #endif
 
 /*********************************************************************
@@ -145,7 +149,7 @@
 //#define UART_DEBUG_MODE                       TRUE
 
 // Battery Threshold, when lower than this value, attention low battery
-#define BATTERY_THRESHOLD                     400
+#define BATTERY_THRESHOLD                     450
 
 // Battery Value is low and recheck it every 1s
 #define BATTERYVALUE_LOW_PERIOD               1000
@@ -215,7 +219,7 @@ static gapDevRec_t simpleBLEDevList[DEFAULT_MAX_SCAN_RES];
 static uint8 simpleBLEScanning = FALSE;
 
 // RSSI polling state
-static uint8 simpleBLERssi = FALSE;
+//static uint8 simpleBLERssi = FALSE;
 
 // Connection handle of current connection
 static uint16 simpleBLEConnHandle = GAP_CONNHANDLE_INIT;
@@ -266,7 +270,7 @@ static void simpleBLECentralConnectDevice( void );
 static void simpleBLECentral_ProcessOSALMsg( osal_event_hdr_t *pMsg );
 static void simpleBLEGATTDiscoveryEvent( gattMsgEvent_t *pMsg );
 static void simpleBLECentralStartDiscovery( void );
-static bool simpleBLEFindSvcUuid( uint16 uuid, uint8 *pData, uint8 dataLen );
+//static bool simpleBLEFindSvcUuid( uint16 uuid, uint8 *pData, uint8 dataLen );
 static bool simpleBLEFindDeviceName( uint8* pData, uint8 dataLen);
 
 char *bdAddr2Str ( uint8 *pAddr );
@@ -311,11 +315,11 @@ void SimpleBLECentral_Init( uint8 task_id )
 {
   simpleBLETaskId = task_id;
 
-#if defined ( HAL_UART)
+#if (defined HAL_UART) && (HAL_UART == TRUE)
   SerialApp_Init(simpleBLETaskId);
 #endif
 
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
   SerialPrintString("\r\nSimpleBLECentral_Glove");
 #endif
 
@@ -354,12 +358,12 @@ void SimpleBLECentral_Init( uint8 task_id )
   GGS_AddService( GATT_ALL_SERVICES );         // GAP
   GATTServApp_AddService( GATT_ALL_SERVICES ); // GATT attributes
   
-#if ( defined HAL_KEY )
+#if ( defined HAL_KEY ) && (HAL_KEY == TRUE)
   // Register for all key events - This app will handle all key events
   RegisterForKeys( simpleBLETaskId );
 #endif
 
-#if ( defined HAL_LED )
+#if ( defined HAL_LED ) && (HAL_LED == TRUE)
   // makes sure LEDs are off
   HalLedSet(HAL_LED_ALL, HAL_LED_MODE_OFF);
 #endif
@@ -375,6 +379,7 @@ void SimpleBLECentral_Init( uint8 task_id )
   // Bootup battery charging event
   osal_set_event( simpleBLETaskId, CHARGING_EVT );
 
+  // Bootup battery value check event
   osal_set_event( simpleBLETaskId, BATTERYVALUE_EVT );
 }
 
@@ -524,7 +529,7 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
 #if defined ( GLOVE )
   if ( keys & HAL_KEY_SW_7 )
   {
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
     SerialPrintString("\r\n[KEY SW 7 pressed!]");
 #endif
 
@@ -547,7 +552,7 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
   
   if ( keys & HAL_KEY_SW_6 )
   {
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
     SerialPrintString("\r\n[KEY SW 6 pressed!]");
 #endif
     
@@ -555,11 +560,14 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
     
   }
   
+#if 0
   if ( keys & HAL_CHARGE )
   {
     //HalLedBlink( HAL_LED_1, 1, 50, 100);
   }
-#else
+#endif
+
+#else // if !defined GLOVE
   if ( keys & HAL_KEY_UP ){}
 
   if ( keys & HAL_KEY_RIGHT ){}
@@ -568,7 +576,7 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
 
   if ( keys & HAL_KEY_CENTER )
   {
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
     SerialPrintString("\r\n[KEY CENTER pressed!]");
 #endif
 
@@ -588,9 +596,11 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
 
   if ( keys & HAL_KEY_DOWN )
   {
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
     SerialPrintString("\r\n[KEY DOWN pressed!]");
 #endif
+
+#if 0
     // Start or cancel RSSI polling
     if ( simpleBLEState == BLE_STATE_CONNECTED )
     {
@@ -598,7 +608,7 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
       {
         simpleBLERssi = TRUE;
         GAPCentralRole_StartRssi( simpleBLEConnHandle, DEFAULT_RSSI_PERIOD );
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
         SerialPrintString("\r\nRSSI Started");
 #endif
       }
@@ -606,12 +616,13 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
       {
         simpleBLERssi = FALSE;
         GAPCentralRole_CancelRssi( simpleBLEConnHandle );
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
         SerialPrintString("\r\nRSSI Cancelled");
 #endif
       }
     }
-  }
+#endif
+  } // HAL_KEY_DOWN
 #endif // !defined ( GLOVE )
 }
 
@@ -692,7 +703,7 @@ static void simpleBLECentralSearchDevice( void )
       simpleBLEScanning = TRUE;
       simpleBLEScanRes = 0;
 
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
       SerialPrintString("\r\nDiscovering...");
 #endif
 
@@ -723,7 +734,7 @@ static void simpleBLECentralSelectDevice()
     uint8 rssi;
     while ( simpleBLEScanIdx < simpleBLEScanRes )
     {
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
       SerialPrintValue( "\r\nDevice", simpleBLEScanIdx + 1, 10);
       SerialPrintString((uint8*) bdAddr2Str( simpleBLEDevList[simpleBLEScanIdx].addr ));
       SerialPrintValue("\r\nRssi", simpleBLEDevList[simpleBLEScanIdx].rssi, 10);
@@ -740,7 +751,7 @@ static void simpleBLECentralSelectDevice()
     }
 
 
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
     SerialPrintValue("\r\nSelect Device", simpleBLEScanSelectedIdx + 1, 10);
     SerialPrintString(" to connect ");
     SerialPrintString((uint8*) bdAddr2Str( simpleBLEDevList[simpleBLEScanSelectedIdx].addr ));
@@ -779,7 +790,7 @@ static void simpleBLECentralConnectDevice()
                                       addrType, peerAddr );
 
 
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
         SerialPrintString("\r\nConnecting:");
         SerialPrintString((uint8*)bdAddr2Str( peerAddr));//SerialPrintString("\r\n");
 #endif
@@ -812,23 +823,21 @@ static void simpleBLECentralProcessGATTMsg( gattMsgEvent_t *pMsg )
     if ( pMsg->method == ATT_WRITE_RSP ) 
     {
       // a succesful write
-#if defined ( UART_DEBUG_MODE )
-      uint8 temp = 
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
+      uint8 temp = workingReq.value[0];
 #endif
-        workingReq.value[0];
       
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
       SerialPrintValue( "\r\nWrite sent:", temp, 10);
 #endif
     }
     else
     {
-#if defined ( UART_DEBUG_MODE )
-      uint8 status = 
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
+      uint8 status = pMsg->msg.errorRsp.errCode;
 #endif
-        pMsg->msg.errorRsp.errCode;
 
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
       SerialPrintValue( "\r\nWrite Error", status, 10);
 #endif
     }
@@ -842,23 +851,23 @@ static void simpleBLECentralProcessGATTMsg( gattMsgEvent_t *pMsg )
     if ( pMsg->method == ATT_READ_RSP ) 
     {
       // After a successful read, display the read value
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
       uint8 valueRead = 
 #endif
         pMsg->msg.readRsp.value[0];
 
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
       SerialPrintValue("\r\nRead rsp:", valueRead, 10);
 #endif
     }
     else
     {
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
       uint8 status = 
 #endif
         pMsg->msg.errorRsp.errCode;
 
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
       SerialPrintValue("\r\nRead Error", status, 10);
 #endif
     }
@@ -884,7 +893,7 @@ static void simpleBLECentralProcessGATTMsg( gattMsgEvent_t *pMsg )
  */
 static void simpleBLECentralRssiCB( uint16 connHandle, int8 rssi )
 {
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
     SerialPrintValue("RSSI -dB:", (uint8) (-rssi), 10);//SerialPrintString("\r\n");
 #endif
 }
@@ -904,6 +913,9 @@ static void ChargingCheck(void)
   if ( chargeFlag )
   {
     HalLedBlink( HAL_LED_1, 1, 20, 1000);
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
+    SerialPrintString("\r\nCharging");
+#endif
   }
   osal_start_timerEx( simpleBLETaskId, CHARGING_EVT, CHARGING_PERIOD);
 }
@@ -921,7 +933,9 @@ static void BatteryValueCheck(void)
 {
   static uint16 batteryValue; 
   batteryValue = HalAdcRead( HAL_ADC_CHANNEL_7, HAL_ADC_RESOLUTION_10 );
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
   SerialPrintValue("\r\nBattery: ", batteryValue, 10);
+#endif
 
   if ( batteryValue < BATTERY_THRESHOLD)
   {
@@ -929,6 +943,9 @@ static void BatteryValueCheck(void)
     BatteryLow = TRUE;
     HalLedBlink( HAL_LED_1, 2, 50, 500);
     osal_start_timerEx( simpleBLETaskId, BATTERYVALUE_EVT, BATTERYVALUE_LOW_PERIOD);
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
+    SerialPrintValue("\r\nLow Battery: ", batteryValue, 10);
+#endif
   }
   else
   {
@@ -951,7 +968,7 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
   {
     case GAP_DEVICE_INIT_DONE_EVENT:
       {
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
         SerialPrintString("\r\nBLE Central: ");
         SerialPrintString((uint8*)bdAddr2Str( pEvent->initDone.devAddr ));
 #endif
@@ -973,7 +990,7 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
         // discovery complete
         simpleBLEScanning = FALSE;
 
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
         SerialPrintString("\r\nDiscovery Completed");
         SerialPrintValue("\r\nTotal devices:", simpleBLEScanRes, 10);
 #endif
@@ -997,7 +1014,7 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
             osal_start_timerEx( simpleBLETaskId, DISCOVERY_EVT, DEFAULT_SVC_DISCOVERY_DELAY );
           }
 
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
           SerialPrintString("\r\nConnected: ");
           SerialPrintString((uint8*) bdAddr2Str( pEvent->linkCmpl.devAddr ));//SerialPrintString("\r\n");
 #endif
@@ -1008,10 +1025,10 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
         {
           simpleBLEState = BLE_STATE_IDLE;
           simpleBLEConnHandle = GAP_CONNHANDLE_INIT;
-          simpleBLERssi = FALSE;
+          //simpleBLERssi = FALSE;
           simpleBLEDiscState = BLE_DISC_STATE_IDLE;
 
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
           SerialPrintString("\r\nConnect Failed");
           SerialPrintValue(" Reason:",  pEvent->gap.hdr.status,10);
 #endif
@@ -1023,11 +1040,11 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
       {
         simpleBLEState = BLE_STATE_IDLE;
         simpleBLEConnHandle = GAP_CONNHANDLE_INIT;
-        simpleBLERssi = FALSE;
+        //simpleBLERssi = FALSE;
         simpleBLEDiscState = BLE_DISC_STATE_IDLE;
         simpleBLECharHdl = 0;
 
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
         SerialPrintString("\r\nDisconnected");
         SerialPrintValue(" Reason:",  pEvent->linkTerminate.reason,10);
 #endif
@@ -1089,7 +1106,7 @@ static void simpleBLECentralPairStateCB( uint16 connHandle, uint8 state, uint8 s
 {
   if ( state == GAPBOND_PAIRING_STATE_STARTED )
   {
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
     SerialPrintString("\r\nPairing started");
 #endif
   }
@@ -1097,13 +1114,13 @@ static void simpleBLECentralPairStateCB( uint16 connHandle, uint8 state, uint8 s
   {
     if ( status == SUCCESS )
     {
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
       SerialPrintString("\r\nPairing success");
 #endif
     }
     else
     {
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
       SerialPrintString("\r\nPairing fail");
 #endif
     }
@@ -1112,13 +1129,13 @@ static void simpleBLECentralPairStateCB( uint16 connHandle, uint8 state, uint8 s
   {
     if ( status == SUCCESS )
     {
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
       SerialPrintString("\r\nBonding success");
 #endif
     }
     else
     {
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
       SerialPrintString("\r\nBonding fail");
 #endif
       
@@ -1148,7 +1165,7 @@ static void simpleBLECentralPasscodeCB( uint8 *deviceAddr, uint16 connectionHand
   // Display passcode to user
   if ( uiOutputs != 0 )
   {
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
     uint8 str[7];
     SerialPrintString("\r\nPasscode:");
     SerialPrintString((uint8 *) _ltoa(passcode, str, 10));
@@ -1233,7 +1250,7 @@ static void simpleBLEGATTDiscoveryEvent( gattMsgEvent_t *pMsg )
       simpleBLECharHdl = BUILD_UINT16( pMsg->msg.readByTypeRsp.dataList[0],
                                        pMsg->msg.readByTypeRsp.dataList[1] );
 
-#if defined ( UART_DEBUG_MODE )
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
       SerialPrintString("\r\nSimple Service Found");
 #endif
     }
@@ -1289,6 +1306,7 @@ static bool simpleBLEFindDeviceName( uint8* pData, uint8 dataLen)
   return FALSE;
 
 }
+#if 0
 /*********************************************************************
  * @fn      simpleBLEFindSvcUuid
  *
@@ -1351,7 +1369,7 @@ static bool simpleBLEFindSvcUuid( uint16 uuid, uint8 *pData, uint8 dataLen )
   // Match not found
   return FALSE;
 }
-
+#endif // if 0
 
 /*********************************************************************
  * @fn      bdAddr2Str
