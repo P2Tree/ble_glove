@@ -151,7 +151,7 @@
 #define BATTERYVALUE_LOW_PERIOD               1000
 
 // Battery Value is normal and recheck it every 60s
-#define BATTERYVALUE_NORMAL_PERIOD            1000
+#define BATTERYVALUE_NORMAL_PERIOD            60000
 
 // Application states
 enum
