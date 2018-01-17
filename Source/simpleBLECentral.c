@@ -90,7 +90,7 @@
 // Discovey mode (limited, general, all)
 #define DEFAULT_DISCOVERY_MODE                DEVDISC_MODE_ALL
 
-// TRUE to use active scan
+// TRUE to use active scan, active scan can not only catch adv data but response data
 #define DEFAULT_DISCOVERY_ACTIVE_SCAN         TRUE
 
 // TRUE to use white list during discovery
@@ -108,6 +108,7 @@
 // Whether to enable automatic parameter update request when a connection is formed
 #define DEFAULT_ENABLE_UPDATE_REQUEST         FALSE
 
+#if 0 // automatic parameter update request is disabled
 // Minimum connection interval (units of 1.25ms) if automatic parameter update request is enabled
 #define DEFAULT_UPDATE_MIN_CONN_INTERVAL      800
 
@@ -119,6 +120,7 @@
 
 // Supervision timeout value (units of 10ms) if automatic parameter update request is enabled
 #define DEFAULT_UPDATE_CONN_TIMEOUT           100
+#endif
 
 // Default passcode
 #define DEFAULT_PASSCODE                      123456
@@ -431,28 +433,28 @@ uint16 SimpleBLECentral_ProcessEvent( uint8 task_id, uint16 events )
     return ( events ^ START_DEVICE_EVT );
   }
 
-  if ( events & START_SEARCH_EVT )
+  if ( events & START_SEARCH_EVT )  // search ble devices
   {
     simpleBLECentralSearchDevice( );
 
     return ( events ^ START_SEARCH_EVT );
   }
 
-  if ( events & DISCOVERY_EVT )
-  {
-    simpleBLECentralStartDiscovery( );
-
-    osal_stop_timerEx( simpleBLETaskId, DISCOVERY_EVT );
-
-    return ( events ^ DISCOVERY_EVT );
-  }
-
-  if ( events & SELECT_EVT )
+  if ( events & SELECT_EVT )  // select best ble device
   {
     simpleBLECentralSelectDevice( );
     
     return ( events ^ SELECT_EVT );
   }
+
+  if ( events & DISCOVERY_EVT ) // discovry gatt service
+  {
+    osal_stop_timerEx( simpleBLETaskId, DISCOVERY_EVT );
+    simpleBLECentralStartDiscovery( );
+
+    return ( events ^ DISCOVERY_EVT );
+  }
+
 
   if ( events & CONNECT_EVT )
   {
@@ -557,6 +559,12 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
 #endif
     
     HalLedBlink( HAL_LED_1, 1, 50, 100);
+
+    if ( simpleBLEState == BLE_STATE_IDLE )
+    {
+      // Start to search peripheral devices
+      osal_set_event( simpleBLETaskId, START_SEARCH_EVT );
+    }
     
   }
   
@@ -654,6 +662,8 @@ void SendWorkingState( void )
 
       //uint8 tmp = GATT_WriteCharValue(simpleBLEConnHandle, &workingReq, simpleBLETaskId);
       uint8 tmp = GATT_WriteNoRsp(simpleBLEConnHandle, &workingReq);
+      // Try to send twice, aim to avoid lost data
+      tmp = GATT_WriteNoRsp(simpleBLEConnHandle, &workingReq);
 
       if (tmp == SUCCESS)
       {
@@ -672,6 +682,9 @@ void SendWorkingState( void )
 
       //uint8 tmp = GATT_WriteCharValue(simpleBLEConnHandle, &workingReq, simpleBLETaskId);
       uint8 tmp = GATT_WriteNoRsp(simpleBLEConnHandle, &workingReq);
+      // Try to send twice, aim to avoid lost data
+      tmp = GATT_WriteNoRsp(simpleBLEConnHandle, &workingReq);
+
       if (tmp == SUCCESS)
       {
         workingState = WORKKEY_RELEASE;
@@ -1185,6 +1198,7 @@ static void simpleBLECentralPasscodeCB( uint8 *deviceAddr, uint16 connectionHand
  */
 static void simpleBLECentralStartDiscovery( void )
 {
+  // find GATT service which service uuid is SIMPLEPROFILE_SERV_UUID
   uint8 uuid[ATT_BT_UUID_SIZE] = { LO_UINT16(SIMPLEPROFILE_SERV_UUID),
                                    HI_UINT16(SIMPLEPROFILE_SERV_UUID) };
 
