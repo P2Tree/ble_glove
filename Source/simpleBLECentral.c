@@ -108,6 +108,9 @@
 // Whether to enable automatic parameter update request when a connection is formed
 #define DEFAULT_ENABLE_UPDATE_REQUEST         FALSE
 
+// Default connection establishment supervision timeout, n * 10 (ms)
+#define DEFAULT_CONN_EST_SUPERV_TIMEOUT               100 // 1s
+
 #if 0 // automatic parameter update request is disabled
 // Minimum connection interval (units of 1.25ms) if automatic parameter update request is enabled
 #define DEFAULT_UPDATE_MIN_CONN_INTERVAL      800
@@ -247,10 +250,11 @@ static uint8 defaultDeviceNameLength = 4;
 
 static attWriteReq_t workingReq;
 
+// Working key state, release or pressed
 static uint8 workingState = WORKKEY_RELEASE;
 
 static bool BatteryLow = FALSE;
-
+static bool BatteryCharged = FALSE;
 
 /*********************************************************************
  * LOCAL FUNCTIONS
@@ -335,6 +339,7 @@ void SimpleBLECentral_Init( uint8 task_id )
   GAP_SetParamValue( TGAP_GEN_DISC_SCAN, DEFAULT_SCAN_DURATION );
   GAP_SetParamValue( TGAP_LIM_DISC_SCAN, DEFAULT_SCAN_DURATION );
   GGS_SetParameter( GGS_DEVICE_NAME_ATT, GAP_DEVICE_NAME_LEN, (uint8 *) simpleBLEDeviceName );
+  GAP_SetParamValue( TGAP_CONN_EST_SUPERV_TIMEOUT, DEFAULT_CONN_EST_SUPERV_TIMEOUT);
 
   // Setup the GAP Bond Manager
   {
@@ -401,6 +406,7 @@ void SimpleBLECentral_Init( uint8 task_id )
 uint16 SimpleBLECentral_ProcessEvent( uint8 task_id, uint16 events )
 {
 
+  HalLedSet(HAL_LED_1, HAL_LED_MODE_ON);
   VOID task_id; // OSAL required parameter that isn't used in this function
 
   if ( events & SYS_EVENT_MSG )
@@ -568,13 +574,6 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
     
   }
   
-#if 0
-  if ( keys & HAL_CHARGE )
-  {
-    //HalLedBlink( HAL_LED_1, 1, 50, 100);
-  }
-#endif
-
 #else // if !defined GLOVE
   if ( keys & HAL_KEY_UP ){}
 
@@ -925,9 +924,18 @@ static void ChargingCheck(void)
   bool chargeFlag = HalKeyPressing(HAL_CHARGE);
   if ( chargeFlag )
   {
-    HalLedBlink( HAL_LED_1, 1, 20, 1000);
+    //HalLedSet(HAL_LED_1, HAL_LED_MODE_ON);
+    BatteryCharged = TRUE;
 #if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
-    SerialPrintString("\r\nCharging");
+    //SerialPrintString("\r\nCharging");
+#endif
+  }
+  else
+  {
+    //HalLedSet(HAL_LED_1, HAL_LED_MODE_OFF);
+    BatteryCharged = FALSE;
+#if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
+    //SerialPrintString("\r\nNot Charge");
 #endif
   }
   osal_start_timerEx( simpleBLETaskId, CHARGING_EVT, CHARGING_PERIOD);
@@ -942,9 +950,9 @@ static void ChargingCheck(void)
  *
  * @return  none
  */
+static uint16 batteryValue;
 static void BatteryValueCheck(void)
 {
-  static uint16 batteryValue; 
   batteryValue = HalAdcRead( HAL_ADC_CHANNEL_7, HAL_ADC_RESOLUTION_10 );
 #if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
   SerialPrintValue("\r\nBattery: ", batteryValue, 10);
@@ -954,11 +962,16 @@ static void BatteryValueCheck(void)
   {
     // loop check battery value
     BatteryLow = TRUE;
-    HalLedBlink( HAL_LED_1, 2, 50, 500);
-    osal_start_timerEx( simpleBLETaskId, BATTERYVALUE_EVT, BATTERYVALUE_LOW_PERIOD);
+    if ( BatteryCharged == FALSE)
+    {
+      HalLedBlink( HAL_LED_1, 2, 50, 500);
+    }
+
 #if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
     SerialPrintValue("\r\nLow Battery: ", batteryValue, 10);
 #endif
+
+    osal_start_timerEx( simpleBLETaskId, BATTERYVALUE_EVT, BATTERYVALUE_LOW_PERIOD);
   }
   else
   {
@@ -1267,6 +1280,7 @@ static void simpleBLEGATTDiscoveryEvent( gattMsgEvent_t *pMsg )
 #if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
       SerialPrintString("\r\nSimple Service Found");
 #endif
+      HalLedBlink( HAL_LED_1, 4, 40, 1000);
     }
 
     simpleBLEDiscState = BLE_DISC_STATE_IDLE;
