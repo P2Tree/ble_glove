@@ -2,7 +2,7 @@
 <project>
     <fileVersion>3</fileVersion>
     <configuration>
-        <name>CC2541EM</name>
+        <name>GLOVE</name>
         <toolchain>
             <name>8051</name>
         </toolchain>
@@ -705,7 +705,7 @@
         </debuggerPlugins>
     </configuration>
     <configuration>
-        <name>TJGQ_glove</name>
+        <name>CC2541EM</name>
         <toolchain>
             <name>8051</name>
         </toolchain>
