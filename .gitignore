@@ -1,6 +1,8 @@
 # Prerequisites
 *.d
 
+CC2541/CC2541EM/Exe/SimpleBLECentral.d51
+
 # Object files
 *.o
 *.ko
