@@ -256,6 +256,8 @@ static uint8 workingState = WORKKEY_RELEASE;
 static bool BatteryLow = FALSE;
 static bool BatteryCharged = FALSE;
 
+static bool WhiteListEnable = FALSE;
+
 /*********************************************************************
  * LOCAL FUNCTIONS
  */
@@ -406,7 +408,6 @@ void SimpleBLECentral_Init( uint8 task_id )
 uint16 SimpleBLECentral_ProcessEvent( uint8 task_id, uint16 events )
 {
 
-  HalLedSet(HAL_LED_1, HAL_LED_MODE_ON);
   VOID task_id; // OSAL required parameter that isn't used in this function
 
   if ( events & SYS_EVENT_MSG )
@@ -460,7 +461,6 @@ uint16 SimpleBLECentral_ProcessEvent( uint8 task_id, uint16 events )
 
     return ( events ^ DISCOVERY_EVT );
   }
-
 
   if ( events & CONNECT_EVT )
   {
@@ -546,6 +546,7 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
     if ( simpleBLEState == BLE_STATE_CONNECTING ||
               simpleBLEState == BLE_STATE_CONNECTED )
     {
+      // if link is connected, start work event
       workingState = WORKKEY_RELEASE;
       SendWorkingState();
 
@@ -553,8 +554,8 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
       osal_set_event(simpleBLETaskId, WORKING_REQ_EVT);
     }
     else {
-      // Start to search peripheral devices
-      osal_set_event( simpleBLETaskId, START_SEARCH_EVT );
+      // only when disconnected state, restart connect event to connect previous device it remembered
+      osal_set_event( simpleBLETaskId, CONNECT_EVT );
     }
   }
   
@@ -564,11 +565,31 @@ static void simpleBLECentral_HandleKeys( uint8 shift, uint8 keys )
     SerialPrintString("\r\n[KEY SW 6 pressed!]");
 #endif
     
+
     HalLedBlink( HAL_LED_1, 1, 50, 100);
 
-    if ( simpleBLEState == BLE_STATE_IDLE )
+    if ( keys & HAL_KEY_SHORT) // if key is short pressed
     {
-      // Start to search peripheral devices
+      // only when disconnected state, restart search event
+      if ( simpleBLEState == BLE_STATE_IDLE )
+      {
+        // Start to search peripheral devices
+        osal_set_event( simpleBLETaskId, START_SEARCH_EVT );
+      }
+    }
+    else if ( keys & HAL_KEY_LONG) // if key is long pressed
+    {
+      // first, if connection is linked, disconnect it
+      if ( simpleBLEState == BLE_STATE_CONNECTING ||
+                simpleBLEState == BLE_STATE_CONNECTED )
+      {
+        // Disconnect current link
+        simpleBLEState = BLE_STATE_DISCONNECTING;
+
+        GAPCentralRole_TerminateLink( simpleBLEConnHandle );
+      }
+
+      // second, start search event
       osal_set_event( simpleBLETaskId, START_SEARCH_EVT );
     }
     
@@ -722,6 +743,7 @@ static void simpleBLECentralSearchDevice( void )
       GAPCentralRole_StartDiscovery( DEFAULT_DISCOVERY_MODE,
                                       DEFAULT_DISCOVERY_ACTIVE_SCAN,
                                       DEFAULT_DISCOVERY_WHITE_LIST );
+
     }
     else
     {
@@ -924,7 +946,7 @@ static void ChargingCheck(void)
   bool chargeFlag = HalKeyPressing(HAL_CHARGE);
   if ( chargeFlag )
   {
-    //HalLedSet(HAL_LED_1, HAL_LED_MODE_ON);
+    HalLedSet(HAL_LED_1, HAL_LED_MODE_ON);
     BatteryCharged = TRUE;
 #if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
     //SerialPrintString("\r\nCharging");
@@ -932,7 +954,7 @@ static void ChargingCheck(void)
   }
   else
   {
-    //HalLedSet(HAL_LED_1, HAL_LED_MODE_OFF);
+    HalLedSet(HAL_LED_1, HAL_LED_MODE_OFF);
     BatteryCharged = FALSE;
 #if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
     //SerialPrintString("\r\nNot Charge");
@@ -1045,7 +1067,7 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
           SerialPrintString((uint8*) bdAddr2Str( pEvent->linkCmpl.devAddr ));//SerialPrintString("\r\n");
 #endif
           
-
+          HalLedBlink( HAL_LED_1, 4, 80, 1000);
         }
         else
         {
@@ -1074,6 +1096,7 @@ static void simpleBLECentralEventCB( gapCentralRoleEvent_t *pEvent )
         SerialPrintString("\r\nDisconnected");
         SerialPrintValue(" Reason:",  pEvent->linkTerminate.reason,10);
 #endif
+        HalLedBlink( HAL_LED_1, 4, 20, 1000);
       }
       break;
 
@@ -1280,7 +1303,6 @@ static void simpleBLEGATTDiscoveryEvent( gattMsgEvent_t *pMsg )
 #if (defined UART_DEBUG_MODE ) && (UART_DEBUG_MODE == TRUE)
       SerialPrintString("\r\nSimple Service Found");
 #endif
-      HalLedBlink( HAL_LED_1, 4, 40, 1000);
     }
 
     simpleBLEDiscState = BLE_DISC_STATE_IDLE;
