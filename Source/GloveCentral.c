@@ -668,7 +668,7 @@ void SendWorkingState( void )
   workingReq.handle = gloveCharHdl;
   workingReq.len = 1;
   workingReq.sig = 0;
-  workingReq.cmd = 1;
+  workingReq.cmd = 1; // 如果使用GATT_WriteCharValue，cmd=0；如果使用GATT_WriteNoRsp，cmd=1
 
   // 如果希望始终发送按键信息，则应该关掉workingState状态的判断，并且在isPressing的外边启动定时器，一直不关闭
   if ( isPressing )
